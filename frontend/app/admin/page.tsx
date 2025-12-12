@@ -33,7 +33,7 @@ export default function AdminDashboard() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Churn Risk (ML)</CardTitle>
+                        <CardTitle>Churn Risk</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-4xl font-bold text-red-600">High</p>
