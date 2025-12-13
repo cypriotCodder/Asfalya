@@ -24,9 +24,11 @@ export default function MechanicMap() {
     }, []);
 
     const mechanics = [
-        { id: 1, name: "FixIt Fast", lat: 35.351186, lng: 33.142995, address: "123 Main St" },
-        { id: 2, name: "AutoCare Pro", lat: 33.142995, lng: 33.142995, address: "456 Oak Ave" },
-        { id: 3, name: "Quick Lube", lat: 33.142995, lng: 33.142995, address: "789 Pine Ln" },
+        { id: 1, name: "FixIt Fast", lat: 35.351186, lng: 33.142995, address: "123 Main St" }
+    ];
+
+    const tireChange = [
+        { id: 1, name: "Lastikci", lat: 35.351186, lng: 33.142995, address: "123 Main St" }
     ];
 
     return (

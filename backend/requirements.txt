@@ -9,3 +9,5 @@ pandas
 scikit-learn
 celery
 redis
+openpyxl
+python-multipart

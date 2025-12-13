@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import ExcelUpload from "@/components/ExcelUpload";
 
 export default function AdminDashboard() {
     return (
@@ -11,6 +12,10 @@ export default function AdminDashboard() {
                 </div>
                 <Button>Create Notification</Button>
             </header>
+
+            <div className="mb-8">
+                <ExcelUpload />
+            </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
