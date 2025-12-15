@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ExcelUpload from "@/components/ExcelUpload";
+import LogoutButton from "@/components/LogoutButton";
 
 export default function AdminDashboard() {
     return (
@@ -10,7 +11,10 @@ export default function AdminDashboard() {
                     <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Admin Dashboard</h1>
                     <p className="text-zinc-500">Agency Overview & Insights</p>
                 </div>
-                <Button>Create Notification</Button>
+                <div className="flex gap-2">
+                    <Button>Create Notification</Button>
+                    <LogoutButton />
+                </div>
             </header>
 
             <div className="mb-8">

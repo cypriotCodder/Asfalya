@@ -1,14 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
 import MechanicMapLoader from '@/components/MechanicMapLoader';
+import LogoutButton from "@/components/LogoutButton";
 
 export default function CustomerPortal() {
     return (
         <div className="min-h-screen bg-white p-8">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold text-zinc-900">My Policies</h1>
-                <p className="text-zinc-500">Manage your insurance renewals</p>
+            <header className="mb-8 flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-zinc-900">My Policies</h1>
+                    <p className="text-zinc-500">Manage your insurance renewals</p>
+                </div>
+                <LogoutButton />
             </header>
 
             <div className="grid gap-6 md:grid-cols-2">

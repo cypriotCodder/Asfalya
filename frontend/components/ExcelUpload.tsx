@@ -34,8 +34,12 @@ export default function ExcelUpload() {
             : "http://localhost:8000/api/upload/customers";
 
         try {
+            const token = localStorage.getItem("token");
             const response = await fetch(endpoint, {
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
                 body: formData,
             });
 
