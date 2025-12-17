@@ -39,7 +39,7 @@ export default function MechanicMap() {
                 const res = await fetch("http://localhost:8000/api/mechanics");
                 if (res.ok) {
                     const data = await res.json();
-                    setMechanics(data);
+                    setMechanics(Array.isArray(data) ? data : []);
                 }
             } catch (error) {
                 console.error("Failed to fetch mechanics", error);
@@ -60,7 +60,7 @@ export default function MechanicMap() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {mechanics.map((mech) => {
+            {mechanics?.map((mech) => {
                 let lat = parseFloat(mech.latitude);
                 let lng = parseFloat(mech.longitude);
 

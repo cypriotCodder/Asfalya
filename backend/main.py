@@ -9,7 +9,7 @@ from database import engine, Base, get_db
 from models import Mechanic, User
 from auth_utils import verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import timedelta
+from datetime import timedelta, datetime
 from jose import JWTError, jwt
 import os
 
@@ -169,3 +169,234 @@ async def get_mechanics(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Mechanic))
     mechanics = result.scalars().all()
     return mechanics
+class UserResponse(BaseModel):
+    id: int
+    email: str | None
+    phone: str | None
+    is_active: bool
+    is_admin: bool
+    policy_type: str | None
+    policy_number: str | None
+    policy_expiry: datetime | None
+    vehicle_plate: str | None
+    
+    class Config:
+        from_attributes = True
+
+class UserUpdate(BaseModel):
+    email: str | None = None
+    phone: str | None = None
+    policy_type: str | None = None
+    policy_number: str | None = None
+    policy_expiry: datetime | None = None
+    vehicle_plate: str | None = None
+
+@app.get("/api/customers", response_model=list[UserResponse])
+async def get_customers(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    result = await db.execute(select(User).where(User.is_admin == False))
+    return result.scalars().all()
+
+class UserCreate(BaseModel):
+    email: str | None = None
+    phone: str | None = None
+    policy_type: str | None = None
+    policy_number: str | None = None
+    policy_expiry: datetime | None = None
+    vehicle_plate: str | None = None
+
+@app.post("/api/customers", response_model=UserResponse)
+async def create_customer(user_create: UserCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Check if user already exists
+    if user_create.email:
+        existing_email = await db.execute(select(User).where(User.email == user_create.email))
+        if existing_email.scalars().first():
+             raise HTTPException(status_code=400, detail="Email already registered")
+             
+    if user_create.phone:
+        existing_phone = await db.execute(select(User).where(User.phone == user_create.phone))
+        if existing_phone.scalars().first():
+             raise HTTPException(status_code=400, detail="Phone already registered")
+
+    new_user = User(
+        email=user_create.email,
+        phone=user_create.phone,
+        hashed_password=get_password_hash("123456"), # Default password
+        is_active=True,
+        is_admin=False,
+        policy_type=user_create.policy_type,
+        policy_number=user_create.policy_number,
+        policy_expiry=user_create.policy_expiry,
+        vehicle_plate=user_create.vehicle_plate
+    )
+    
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    return new_user
+
+@app.put("/api/customers/{user_id}", response_model=UserResponse)
+async def update_customer(user_id: int, user_update: UserUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if user_update.email is not None:
+        user.email = user_update.email
+    if user_update.phone is not None:
+        user.phone = user_update.phone
+    if user_update.policy_type is not None:
+        user.policy_type = user_update.policy_type
+    if user_update.policy_number is not None:
+        user.policy_number = user_update.policy_number
+    if user_update.policy_expiry is not None:
+        user.policy_expiry = user_update.policy_expiry
+    if user_update.vehicle_plate is not None:
+        user.vehicle_plate = user_update.vehicle_plate
+        
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+class NotificationRequest(BaseModel):
+    message: str
+    target_audience: str = "all" # 'all', 'active', 'renewal_1week'
+
+@app.post("/api/notifications/broadcast")
+async def broadcast_notification(
+    request: NotificationRequest, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    query = select(User).where(User.is_admin == False)
+    if request.target_audience == 'active':
+        query = query.where(User.is_active == True)
+    elif request.target_audience == 'renewal_1week':
+        now = datetime.now()
+        next_week = now + timedelta(days=7)
+        # Check if expiry is in the future AND within next 7 days
+        query = query.where(User.policy_expiry >= now).where(User.policy_expiry <= next_week)
+        
+    result = await db.execute(query)
+    users = result.scalars().all()
+    
+    count = 0
+    print(f"--- START BROADCAST: {request.message} ---")
+    for user in users:
+        if user.phone:
+            # Mock sending
+            print(f"[Mock WhatsApp] Sending to {user.phone}: {request.message}")
+            count += 1
+    print(f"--- END BROADCAST: Sent {count} messages ---")
+            
+    return {"status": "success", "sent_count": count}
+
+@app.delete("/api/customers/{user_id}")
+async def delete_customer(user_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    await db.delete(user)
+    await db.commit()
+    return {"message": "User deleted successfully"}
+
+# Analytics Endpoints
+from collections import Counter, defaultdict
+
+@app.get("/api/analytics/policy-distribution")
+async def get_policy_distribution(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # if not current_user.is_admin:
+    #     raise HTTPException(status_code=403, detail="Not authorized")
+    
+    result = await db.execute(select(User.policy_type))
+    policies = result.scalars().all()
+    
+    # Filter out None and count
+    counts = Counter([p for p in policies if p])
+    return [{"name": k, "value": v} for k, v in counts.items()]
+
+@app.get("/api/analytics/expiry-timeline")
+async def get_expiry_timeline(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    now = datetime.now()
+    six_months_later = now + timedelta(days=180)
+    
+    result = await db.execute(select(User.policy_expiry).where(User.policy_expiry >= now).where(User.policy_expiry <= six_months_later))
+    expiries = result.scalars().all()
+    
+    # Aggregate by Month-Year
+    monthly_counts = defaultdict(int)
+    for date in expiries:
+        if date:
+            key = date.strftime("%Y-%m") # e.g., 2024-01
+            monthly_counts[key] += 1
+            
+    # Sort and format
+    sorted_keys = sorted(monthly_counts.keys())
+    return [{"month": k, "count": monthly_counts[k]} for k in sorted_keys]
+
+@app.get("/api/analytics/customer-growth")
+async def get_customer_growth(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Get all creation dates
+    result = await db.execute(select(User.created_at))
+    dates = result.scalars().all()
+    
+    monthly_counts = defaultdict(int)
+    for date in dates:
+        if date:
+            key = date.strftime("%Y-%m")
+            monthly_counts[key] += 1
+            
+    sorted_keys = sorted(monthly_counts.keys())
+    
+    # Calculate cumulative growth
+    growth_data = []
+    cumulative = 0
+    for key in sorted_keys:
+        cumulative += monthly_counts[key]
+        growth_data.append({"month": key, "users": cumulative})
+        
+    return growth_data
+
+@app.get("/api/analytics/stats")
+async def get_dashboard_stats(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Total Customers
+    result_total = await db.execute(select(User).where(User.is_admin == False))
+    total_customers = len(result_total.scalars().all())
+
+    # Active Policies
+    result_active = await db.execute(select(User).where(User.is_active == True).where(User.is_admin == False))
+    active_policies = len(result_active.scalars().all())
+
+    # Expiring Soon (Next 30 days)
+    now = datetime.now()
+    next_month = now + timedelta(days=30)
+    result_expiring = await db.execute(
+        select(User)
+        .where(User.policy_expiry >= now)
+        .where(User.policy_expiry <= next_month)
+        .where(User.is_admin == False)
+    )
+    expiring_soon = len(result_expiring.scalars().all())
+
+    return {
+        "total_customers": total_customers,
+        "active_policies": active_policies,
+        "expiring_soon": expiring_soon
+    }

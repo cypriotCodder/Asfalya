@@ -7,11 +7,17 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=True)
-    phone = Column(String, unique=True, index=True, nullable=True)
+    phone = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Policy Details
+    policy_type = Column(String, nullable=True)
+    policy_number = Column(String, nullable=True)
+    policy_expiry = Column(DateTime, nullable=True)
+    vehicle_plate = Column(String, nullable=True)
 
 class Mechanic(Base):
     __tablename__ = "mechanics"

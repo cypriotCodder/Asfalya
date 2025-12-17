@@ -1,0 +1,265 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import CreateCustomerDialog from "@/components/CreateCustomerDialog";
+
+interface Customer {
+    id: number;
+    email: string | null;
+    phone: string | null;
+    is_active: boolean;
+    policy_type?: string;
+    policy_number?: string;
+    policy_expiry?: string;
+    vehicle_plate?: string;
+}
+
+export default function CustomerList() {
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+    useEffect(() => {
+        fetchCustomers();
+    }, []);
+
+    useEffect(() => {
+        const lowerQuery = searchQuery.toLowerCase();
+        const filtered = customers.filter(c =>
+            c.email?.toLowerCase().includes(lowerQuery) ||
+            c.phone?.includes(lowerQuery) ||
+            c.vehicle_plate?.toLowerCase().includes(lowerQuery) ||
+            c.policy_number?.toLowerCase().includes(lowerQuery) ||
+            c.id.toString().includes(lowerQuery)
+        );
+        setFilteredCustomers(filtered);
+    }, [searchQuery, customers]);
+
+    const fetchCustomers = async () => {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:8000/api/customers", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+            const data = await res.json();
+            setCustomers(data);
+            setFilteredCustomers(data);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this customer?")) return;
+
+        const token = localStorage.getItem("token");
+        const res = await fetch(`http://localhost:8000/api/customers/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+            fetchCustomers();
+        } else {
+            alert("Failed to delete customer");
+        }
+    };
+
+    const handleWhatsApp = (phone: string | null) => {
+        if (!phone) return;
+        const cleanPhone = phone.replace(/\D/g, ''); // Remove non-digits
+        window.open(`https://wa.me/${cleanPhone}`, '_blank');
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingCustomer) return;
+
+        const token = localStorage.getItem("token");
+        const res = await fetch(`http://localhost:8000/api/customers/${editingCustomer.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                email: editingCustomer.email,
+                phone: editingCustomer.phone,
+                policy_type: editingCustomer.policy_type,
+                policy_number: editingCustomer.policy_number,
+                policy_expiry: editingCustomer.policy_expiry,
+                vehicle_plate: editingCustomer.vehicle_plate
+            }),
+        });
+
+        if (res.ok) {
+            setIsEditDialogOpen(false);
+            setEditingCustomer(null);
+            fetchCustomers();
+        } else {
+            alert("Failed to update customer");
+        }
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <Input
+                    placeholder="Search by email, phone, plate, or policy..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="max-w-sm"
+                />
+                <CreateCustomerDialog onSuccess={fetchCustomers} />
+            </div>
+
+            <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Phone</TableHead>
+                            <TableHead>Vehicle</TableHead>
+                            <TableHead>Policy</TableHead>
+                            <TableHead>Expiry</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredCustomers.map((customer) => (
+                            <TableRow key={customer.id}>
+                                <TableCell>{customer.id}</TableCell>
+                                <TableCell>{customer.email || "-"}</TableCell>
+                                <TableCell>{customer.phone || "-"}</TableCell>
+                                <TableCell>{customer.vehicle_plate || "-"}</TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">{customer.policy_type || "-"}</span>
+                                        <span className="text-xs text-muted-foreground">{customer.policy_number}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    {customer.policy_expiry ? new Date(customer.policy_expiry).toLocaleDateString() : "-"}
+                                </TableCell>
+                                <TableCell>
+                                    <span className={`px-2 py-1 rounded text-xs ${customer.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        {customer.is_active ? "Active" : "Inactive"}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="text-right space-x-2">
+                                    {customer.phone && (
+                                        <Button variant="outline" size="sm" className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100" onClick={() => handleWhatsApp(customer.phone)}>
+                                            WhatsApp
+                                        </Button>
+                                    )}
+                                    <Button variant="outline" size="sm" onClick={() => {
+                                        setEditingCustomer(customer);
+                                        setIsEditDialogOpen(true);
+                                    }}>
+                                        Edit
+                                    </Button>
+                                    <Button variant="destructive" size="sm" onClick={() => handleDelete(customer.id)}>
+                                        Delete
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        {filteredCustomers.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={8} className="text-center h-24">
+                                    No customers found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Edit Customer</DialogTitle>
+                    </DialogHeader>
+                    {editingCustomer && (
+                        <form onSubmit={handleEditSubmit} className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    value={editingCustomer.email || ""}
+                                    onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">Phone</Label>
+                                <Input
+                                    id="phone"
+                                    value={editingCustomer.phone || ""}
+                                    onChange={(e) => setEditingCustomer({ ...editingCustomer, phone: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="vehicle_plate">Vehicle Plate</Label>
+                                <Input
+                                    id="vehicle_plate"
+                                    value={editingCustomer.vehicle_plate || ""}
+                                    onChange={(e) => setEditingCustomer({ ...editingCustomer, vehicle_plate: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="policy_number">Policy Number</Label>
+                                <Input
+                                    id="policy_number"
+                                    value={editingCustomer.policy_number || ""}
+                                    onChange={(e) => setEditingCustomer({ ...editingCustomer, policy_number: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="policy_type">Policy Type</Label>
+                                <Input
+                                    id="policy_type"
+                                    value={editingCustomer.policy_type || ""}
+                                    onChange={(e) => setEditingCustomer({ ...editingCustomer, policy_type: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="policy_expiry">Policy Expiry</Label>
+                                <Input
+                                    id="policy_expiry"
+                                    type="date"
+                                    value={editingCustomer.policy_expiry ? new Date(editingCustomer.policy_expiry).toISOString().split('T')[0] : ""}
+                                    onChange={(e) => setEditingCustomer({ ...editingCustomer, policy_expiry: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="col-span-2">
+                                <Button type="submit" className="w-full">Save Changes</Button>
+                            </div>
+                        </form>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}
