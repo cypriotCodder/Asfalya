@@ -104,6 +104,11 @@ async def register_user(user: UserRegister, db: AsyncSession = Depends(get_db)):
     
     return {"access_token": access_token, "token_type": "bearer"}
 
+origins = [
+    "http://localhost:3000",
+    "https://asfalya-delta.vercel.app/"
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
