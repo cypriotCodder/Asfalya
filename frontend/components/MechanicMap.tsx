@@ -36,7 +36,12 @@ export default function MechanicMap() {
         // Fetch mechanics
         async function fetchMechanics() {
             try {
-                const res = await fetch("http://localhost:8000/api/mechanics");
+                const token = localStorage.getItem("token");
+                const res = await fetch("http://localhost:8000/api/mechanics", {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
                 if (res.ok) {
                     const data = await res.json();
                     setMechanics(Array.isArray(data) ? data : []);

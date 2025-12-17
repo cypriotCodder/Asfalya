@@ -81,7 +81,7 @@ export default function AdminPage() {
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
-                    
+
                     <div className="flex justify-end">
                         <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
                             <DialogTrigger asChild>
@@ -130,7 +130,7 @@ export default function AdminPage() {
                         </Dialog>
                     </div>
                     <DashboardStats />
-
+                    <ExcelUpload />
 
                 </TabsContent>
 
@@ -149,8 +149,6 @@ export default function AdminPage() {
                     <AnalyticsDashboard />
                 </TabsContent>
             </Tabs>
-
-            <ExcelUpload />
         </div >
     );
 }

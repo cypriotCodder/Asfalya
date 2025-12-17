@@ -203,7 +203,7 @@ async def upload_customers(file: UploadFile = File(...), db: AsyncSession = Depe
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/mechanics")
-async def get_mechanics(db: AsyncSession = Depends(get_db)):
+async def get_mechanics(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(select(Mechanic))
     mechanics = result.scalars().all()
     return mechanics
@@ -372,8 +372,8 @@ from collections import Counter, defaultdict
 
 @app.get("/api/analytics/policy-distribution")
 async def get_policy_distribution(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # if not current_user.is_admin:
-    #     raise HTTPException(status_code=403, detail="Not authorized")
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
     
     result = await db.execute(select(User.policy_type))
     policies = result.scalars().all()
@@ -384,6 +384,9 @@ async def get_policy_distribution(db: AsyncSession = Depends(get_db), current_us
 
 @app.get("/api/analytics/expiry-timeline")
 async def get_expiry_timeline(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
     now = datetime.now()
     six_months_later = now + timedelta(days=180)
     
@@ -403,6 +406,9 @@ async def get_expiry_timeline(db: AsyncSession = Depends(get_db), current_user: 
 
 @app.get("/api/analytics/customer-growth")
 async def get_customer_growth(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
     # Get all creation dates
     result = await db.execute(select(User.created_at))
     dates = result.scalars().all()
@@ -426,6 +432,9 @@ async def get_customer_growth(db: AsyncSession = Depends(get_db), current_user: 
 
 @app.get("/api/analytics/financial-summary")
 async def get_financial_summary(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
     # Calculate Total Revenue
     result = await db.execute(select(func.sum(User.premium)).where(User.is_admin == False))
     total_revenue = result.scalar() or 0
@@ -456,6 +465,9 @@ async def get_financial_summary(db: AsyncSession = Depends(get_db), current_user
 
 @app.get("/api/analytics/stats")
 async def get_dashboard_stats(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
     # Total Customers
     result_total = await db.execute(select(User).where(User.is_admin == False))
     total_customers = len(result_total.scalars().all())
