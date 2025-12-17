@@ -66,6 +66,44 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+class UserRegister(BaseModel):
+    full_name: str
+    email: str
+    phone: str
+    password: str
+
+@app.post("/register", response_model=Token)
+async def register_user(user: UserRegister, db: AsyncSession = Depends(get_db)):
+    # Check if user already exists
+    result = await db.execute(select(User).where((User.email == user.email) | (User.phone == user.phone)))
+    if result.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email or phone already registered"
+        )
+
+    # Create new user
+    new_user = User(
+        email=user.email,
+        phone=user.phone,
+        full_name=user.full_name,
+        hashed_password=get_password_hash(user.password),
+        is_active=True,
+        is_admin=False
+    )
+    
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    
+    # Generate access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": new_user.email}, expires_delta=access_token_expires
+    )
+    
+    return {"access_token": access_token, "token_type": "bearer"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -173,6 +211,8 @@ class UserResponse(BaseModel):
     id: int
     email: str | None
     phone: str | None
+    full_name: str | None
+    premium: float | None
     is_active: bool
     is_admin: bool
     policy_type: str | None
@@ -186,6 +226,8 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     email: str | None = None
     phone: str | None = None
+    full_name: str | None = None
+    premium: float | None = None
     policy_type: str | None = None
     policy_number: str | None = None
     policy_expiry: datetime | None = None

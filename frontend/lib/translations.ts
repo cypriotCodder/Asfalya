@@ -3,6 +3,23 @@ export type Language = 'en' | 'tr';
 export const translations = {
     en: {
         // Dashboard
+        // Authentication
+        login_title: "Welcome Back",
+        login_subtitle: "Enter your credentials to access your account",
+        email_label: "Email",
+        password_label: "Password",
+        login_button: "Sign In",
+        signup_link: "Don't have an account? Sign up",
+        signup_title: "Create Account",
+        signup_subtitle: "Enter your information to create an account",
+        full_name_label: "Full Name",
+        phone_label: "Phone",
+        confirm_password_label: "Confirm Password",
+        signup_button: "Sign Up",
+        login_link: "Already have an account? Sign in",
+        loading: "Loading...",
+
+        // Dashboard
         dashboard: "Dashboard",
         overview: "Overview",
         customers: "Customers",
@@ -63,6 +80,23 @@ export const translations = {
         notif_sending: "Sending...",
     },
     tr: {
+        // Dashboard
+        // Authentication
+        login_title: "Hoşgeldiniz",
+        login_subtitle: "Hesabınıza erişmek için bilgilerinizi girin",
+        email_label: "E-posta",
+        password_label: "Şifre",
+        login_button: "Giriş Yap",
+        signup_link: "Hesabınız yok mu? Kayıt olun",
+        signup_title: "Hesap Oluştur",
+        signup_subtitle: "Hesap oluşturmak için bilgilerinizi girin",
+        full_name_label: "Ad Soyad",
+        phone_label: "Telefon",
+        confirm_password_label: "Şifre Tekrar",
+        signup_button: "Kayıt Ol",
+        login_link: "Zaten hesabınız var mı? Giriş yapın",
+        loading: "Yükleniyor...",
+
         // Dashboard
         dashboard: "Panel",
         overview: "Genel Bakış",

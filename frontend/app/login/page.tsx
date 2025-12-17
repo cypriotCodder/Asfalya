@@ -3,11 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageToggle from "@/components/LanguageToggle";
 
 export default function LoginPage() {
+    const { t } = useLanguage();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -43,15 +47,19 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+        <div className="flex min-h-screen items-center justify-center bg-zinc-100 dark:bg-zinc-900 relative">
+            <div className="absolute top-4 right-4">
+                <LanguageToggle />
+            </div>
+
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle className="text-2xl text-center">Login to Asfalya</CardTitle>
+                    <CardTitle className="text-2xl text-center">{t('login_title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{t('email_label')}</Label>
                             <Input
                                 id="email"
                                 type="text"
@@ -62,7 +70,7 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">{t('password_label')}</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -73,10 +81,15 @@ export default function LoginPage() {
                         </div>
                         {error && <p className="text-red-500 text-sm">{error}</p>}
                         <Button type="submit" className="w-full">
-                            Sign In
+                            {t('login_button')}
                         </Button>
                     </form>
                 </CardContent>
+                <CardFooter className="flex justify-center">
+                    <Link href="/signup" className="text-sm text-blue-600 hover:underline">
+                        {t('signup_link')}
+                    </Link>
+                </CardFooter>
             </Card>
         </div>
     );
