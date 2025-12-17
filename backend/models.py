@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.sql import func
 from database import Base
 
@@ -14,6 +14,8 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Policy Details
+    full_name = Column(String, nullable=True)
+    premium = Column(Float, default=0.0, nullable=True) # Changed to Float to match DB schema
     policy_type = Column(String, nullable=True)
     policy_number = Column(String, nullable=True)
     policy_expiry = Column(DateTime, nullable=True)

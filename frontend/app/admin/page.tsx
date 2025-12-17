@@ -1,85 +1,143 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import ExcelUpload from "@/components/ExcelUpload";
+import { useEffect, useState } from "react";
 import LogoutButton from "@/components/LogoutButton";
+import ExcelUpload from "@/components/ExcelUpload";
 import CustomerList from "@/components/CustomerList";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import DashboardStats from "@/components/DashboardStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
+    DialogFooter
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import DashboardStats from "@/components/DashboardStats";
-import AnalyticsDashboard from "@/components/AnalyticsDashboard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Send, Bell } from "lucide-react";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/context/LanguageContext";
 
 
-export default function AdminDashboard() {
-    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const [notificationMessage, setNotificationMessage] = useState("");
-    const [targetAudience, setTargetAudience] = useState("all");
+export default function AdminPage() {
+    const { t } = useLanguage();
+    const [notifOpen, setNotifOpen] = useState(false);
+    const [notifLoading, setNotifLoading] = useState(false);
+    const [notifData, setNotifData] = useState({
+        message: "",
+        target_audience: "all"
+    });
 
-    const handleSendNotification = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSendNotification = async () => {
+        setNotifLoading(true);
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8000/api/notifications/broadcast", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                message: notificationMessage,
-                target_audience: targetAudience
-            }),
-        });
+        try {
+            const res = await fetch("http://localhost:8000/api/notifications/broadcast", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(notifData)
+            });
 
-        if (res.ok) {
-            const data = await res.json();
-            alert(`Sent ${data.sent_count} messages successfully!`);
-            setIsNotificationOpen(false);
-            setNotificationMessage("");
-        } else {
-            alert("Failed to send notifications");
+            if (res.ok) {
+                const data = await res.json();
+                alert(`Success: Sent ${data.sent_count} messages`);
+                setNotifOpen(false);
+                setNotifData({ message: "", target_audience: "all" });
+            } else {
+                alert("Failed to send notification");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error sending notification");
+        } finally {
+            setNotifLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 p-8">
-            <header className="mb-8 flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Admin Dashboard</h1>
-                    <p className="text-zinc-500">Agency Overview & Insights</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button onClick={() => setIsNotificationOpen(true)}>Create Notification</Button>
+        <div className="p-8 space-y-8">
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold">{t('welcome')}</h1>
+                <div className="flex items-center gap-4">
+                    <LanguageToggle />
                     <LogoutButton />
                 </div>
-            </header>
+            </div>
 
             <Tabs defaultValue="overview" className="space-y-4">
                 <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="customers">Customers</TabsTrigger>
-                    <TabsTrigger value="insights">Insights</TabsTrigger>
+                    <TabsTrigger value="overview">{t('overview')}</TabsTrigger>
+                    <TabsTrigger value="customers">{t('customers')}</TabsTrigger>
+                    <TabsTrigger value="insights">{t('insights')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
-                    <DashboardStats />
-                    <div className="mb-8">
-                        <ExcelUpload />
+                    
+                    <div className="flex justify-end">
+                        <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="gap-2">
+                                    <Bell className="h-4 w-4" />
+                                    {t('create_notification')}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>{t('notif_title')}</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                    <div className="space-y-2">
+                                        <Label>{t('notif_message')}</Label>
+                                        <Input
+                                            value={notifData.message}
+                                            onChange={(e) => setNotifData({ ...notifData, message: e.target.value })}
+                                            placeholder="e.g. Renew your policy now!"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>{t('notif_audience')}</Label>
+                                        <Select
+                                            value={notifData.target_audience}
+                                            onValueChange={(val: string) => setNotifData({ ...notifData, target_audience: val })}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">{t('notif_audience_all')}</SelectItem>
+                                                <SelectItem value="active">{t('notif_audience_active')}</SelectItem>
+                                                <SelectItem value="renewal_1week">{t('notif_audience_renewal')}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button onClick={handleSendNotification} disabled={notifLoading}>
+                                        {notifLoading ? <Send className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                        {notifLoading ? t('notif_sending') : t('notif_send')}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
+                    <DashboardStats />
+
+
                 </TabsContent>
 
                 <TabsContent value="customers">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Customer Management</CardTitle>
+                            <CardTitle>{t('customers')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <CustomerList />
@@ -87,45 +145,12 @@ export default function AdminDashboard() {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="insights">
+                <TabsContent value="insights" className="space-y-4">
                     <AnalyticsDashboard />
                 </TabsContent>
             </Tabs>
 
-            <Dialog open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Send Broadcast Notification</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleSendNotification} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="audience">Target Audience</Label>
-                            <select
-                                id="audience"
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                value={targetAudience}
-                                onChange={(e) => setTargetAudience(e.target.value)}
-                            >
-                                <option value="all">All Customers</option>
-                                <option value="active">Active Policies Only</option>
-                                <option value="renewal_1week">Expiring in 1 Week</option>
-                            </select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="message">Message</Label>
-                            <textarea
-                                id="message"
-                                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                placeholder="Type your message here..."
-                                value={notificationMessage}
-                                onChange={(e) => setNotificationMessage(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <Button type="submit" className="w-full">Send Broadcast</Button>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        </div>
-    )
+            <ExcelUpload />
+        </div >
+    );
 }

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from pydantic import BaseModel
 import pandas as pd
 import io
@@ -68,7 +68,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -202,6 +202,8 @@ async def get_customers(db: AsyncSession = Depends(get_db), current_user: User =
 class UserCreate(BaseModel):
     email: str | None = None
     phone: str | None = None
+    full_name: str | None = None
+    premium: float | None = None
     policy_type: str | None = None
     policy_number: str | None = None
     policy_expiry: datetime | None = None
@@ -229,6 +231,8 @@ async def create_customer(user_create: UserCreate, db: AsyncSession = Depends(ge
         hashed_password=get_password_hash("123456"), # Default password
         is_active=True,
         is_admin=False,
+        full_name=user_create.full_name,
+        premium=user_create.premium or 0,
         policy_type=user_create.policy_type,
         policy_number=user_create.policy_number,
         policy_expiry=user_create.policy_expiry,
@@ -254,6 +258,10 @@ async def update_customer(user_id: int, user_update: UserUpdate, db: AsyncSessio
         user.email = user_update.email
     if user_update.phone is not None:
         user.phone = user_update.phone
+    if user_update.full_name is not None:
+        user.full_name = user_update.full_name
+    if user_update.premium is not None:
+        user.premium = user_update.premium
     if user_update.policy_type is not None:
         user.policy_type = user_update.policy_type
     if user_update.policy_number is not None:
@@ -373,6 +381,36 @@ async def get_customer_growth(db: AsyncSession = Depends(get_db), current_user: 
         growth_data.append({"month": key, "users": cumulative})
         
     return growth_data
+
+@app.get("/api/analytics/financial-summary")
+async def get_financial_summary(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Calculate Total Revenue
+    result = await db.execute(select(func.sum(User.premium)).where(User.is_admin == False))
+    total_revenue = result.scalar() or 0
+    
+    # Revenue by Policy Type
+    result = await db.execute(select(User.policy_type, func.sum(User.premium)).where(User.is_admin == False).group_by(User.policy_type))
+    revenue_by_type_raw = result.all()
+    revenue_by_type = [{"name": r[0] or "Unknown", "value": r[1] or 0} for r in revenue_by_type_raw]
+    
+    # Revenue Trend
+    result = await db.execute(select(User.created_at, User.premium).where(User.is_admin == False))
+    sales = result.all()
+    
+    monthly_sales = defaultdict(float)
+    for date, amount in sales:
+        if date and amount:
+            key = date.strftime("%Y-%m")
+            monthly_sales[key] += amount
+            
+    sorted_keys = sorted(monthly_sales.keys())
+    revenue_trend = [{"month": k, "amount": monthly_sales[k]} for k in sorted_keys]
+    
+    return {
+        "total_revenue": total_revenue,
+        "revenue_by_type": revenue_by_type,
+        "revenue_trend": revenue_trend
+    }
 
 @app.get("/api/analytics/stats")
 async def get_dashboard_stats(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):

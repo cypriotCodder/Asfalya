@@ -20,6 +20,8 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
     const [formData, setFormData] = useState({
         email: "",
         phone: "",
+        full_name: "",
+        premium: "",
         vehicle_plate: "",
         policy_number: "",
         policy_type: "",
@@ -46,6 +48,8 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                 body: JSON.stringify({
                     email: formData.email || null,
                     phone: formData.phone || null,
+                    full_name: formData.full_name || null,
+                    premium: formData.premium ? parseFloat(formData.premium) : 0,
                     vehicle_plate: formData.vehicle_plate || null,
                     policy_number: formData.policy_number || null,
                     policy_type: formData.policy_type || null,
@@ -59,6 +63,8 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                 setFormData({
                     email: "",
                     phone: "",
+                    full_name: "",
+                    premium: "",
                     vehicle_plate: "",
                     policy_number: "",
                     policy_type: "",
@@ -88,6 +94,15 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                     <DialogTitle>Add New Customer</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="full_name">Full Name</Label>
+                        <Input
+                            id="full_name"
+                            value={formData.full_name}
+                            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                            placeholder="John Doe"
+                        />
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
@@ -138,6 +153,18 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                                 placeholder="Comprehensive"
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="premium">Premium (€)</Label>
+                        <Input
+                            id="premium"
+                            type="number"
+                            step="0.01"
+                            value={formData.premium}
+                            onChange={(e) => setFormData({ ...formData, premium: e.target.value })}
+                            placeholder="0.00"
+                        />
                     </div>
 
                     <div className="space-y-2">

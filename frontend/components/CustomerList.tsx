@@ -19,12 +19,15 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import CreateCustomerDialog from "@/components/CreateCustomerDialog";
+import CreateCustomerDialog from "./CreateCustomerDialog";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Customer {
     id: number;
     email: string | null;
     phone: string | null;
+    full_name: string | null;
+    premium: number | null;
     is_active: boolean;
     policy_type?: string;
     policy_number?: string;
@@ -33,6 +36,7 @@ interface Customer {
 }
 
 export default function CustomerList() {
+    const { t } = useLanguage();
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -47,6 +51,7 @@ export default function CustomerList() {
         const lowerQuery = searchQuery.toLowerCase();
         const filtered = customers.filter(c =>
             c.email?.toLowerCase().includes(lowerQuery) ||
+            c.full_name?.toLowerCase().includes(lowerQuery) ||
             c.phone?.includes(lowerQuery) ||
             c.vehicle_plate?.toLowerCase().includes(lowerQuery) ||
             c.policy_number?.toLowerCase().includes(lowerQuery) ||
@@ -103,6 +108,8 @@ export default function CustomerList() {
             body: JSON.stringify({
                 email: editingCustomer.email,
                 phone: editingCustomer.phone,
+                full_name: editingCustomer.full_name,
+                premium: editingCustomer.premium,
                 policy_type: editingCustomer.policy_type,
                 policy_number: editingCustomer.policy_number,
                 policy_expiry: editingCustomer.policy_expiry,
@@ -123,7 +130,7 @@ export default function CustomerList() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <Input
-                    placeholder="Search by email, phone, plate, or policy..."
+                    placeholder={t('search_placeholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="max-w-sm"
@@ -135,28 +142,37 @@ export default function CustomerList() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Phone</TableHead>
-                            <TableHead>Vehicle</TableHead>
-                            <TableHead>Policy</TableHead>
-                            <TableHead>Expiry</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>{t('col_id')}</TableHead>
+                            <TableHead>{t('col_name')}</TableHead>
+                            <TableHead>{t('col_contact')}</TableHead>
+                            <TableHead>{t('col_vehicle')}</TableHead>
+                            <TableHead>{t('col_policy')}</TableHead>
+                            <TableHead>{t('col_premium')}</TableHead>
+                            <TableHead>{t('col_expiry')}</TableHead>
+                            <TableHead>{t('col_status')}</TableHead>
+                            <TableHead className="text-right">{t('col_actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredCustomers.map((customer) => (
                             <TableRow key={customer.id}>
                                 <TableCell>{customer.id}</TableCell>
-                                <TableCell>{customer.email || "-"}</TableCell>
-                                <TableCell>{customer.phone || "-"}</TableCell>
+                                <TableCell className="font-medium">{customer.full_name || "-"}</TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col text-sm">
+                                        <span>{customer.email || "-"}</span>
+                                        <span className="text-xs text-muted-foreground">{customer.phone || "-"}</span>
+                                    </div>
+                                </TableCell>
                                 <TableCell>{customer.vehicle_plate || "-"}</TableCell>
                                 <TableCell>
                                     <div className="flex flex-col">
                                         <span className="font-medium">{customer.policy_type || "-"}</span>
                                         <span className="text-xs text-muted-foreground">{customer.policy_number}</span>
                                     </div>
+                                </TableCell>
+                                <TableCell>
+                                    {customer.premium ? `€${customer.premium.toFixed(2)}` : "-"}
                                 </TableCell>
                                 <TableCell>
                                     {customer.policy_expiry ? new Date(customer.policy_expiry).toLocaleDateString() : "-"}
@@ -166,27 +182,27 @@ export default function CustomerList() {
                                         {customer.is_active ? "Active" : "Inactive"}
                                     </span>
                                 </TableCell>
-                                <TableCell className="text-right space-x-2">
+                                <TableCell className="text-right space-x-2 whitespace-nowrap">
                                     {customer.phone && (
                                         <Button variant="outline" size="sm" className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100" onClick={() => handleWhatsApp(customer.phone)}>
-                                            WhatsApp
+                                            {t('whatsapp')}
                                         </Button>
                                     )}
                                     <Button variant="outline" size="sm" onClick={() => {
                                         setEditingCustomer(customer);
                                         setIsEditDialogOpen(true);
                                     }}>
-                                        Edit
+                                        {t('edit')}
                                     </Button>
                                     <Button variant="destructive" size="sm" onClick={() => handleDelete(customer.id)}>
-                                        Delete
+                                        {t('delete')}
                                     </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
                         {filteredCustomers.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={8} className="text-center h-24">
+                                <TableCell colSpan={9} className="text-center h-24">
                                     No customers found.
                                 </TableCell>
                             </TableRow>
@@ -202,6 +218,14 @@ export default function CustomerList() {
                     </DialogHeader>
                     {editingCustomer && (
                         <form onSubmit={handleEditSubmit} className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2 col-span-2">
+                                <Label htmlFor="full_name">Full Name</Label>
+                                <Input
+                                    id="full_name"
+                                    value={editingCustomer.full_name || ""}
+                                    onChange={(e) => setEditingCustomer({ ...editingCustomer, full_name: e.target.value })}
+                                />
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
@@ -241,6 +265,16 @@ export default function CustomerList() {
                                     id="policy_type"
                                     value={editingCustomer.policy_type || ""}
                                     onChange={(e) => setEditingCustomer({ ...editingCustomer, policy_type: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="premium">Premium (€)</Label>
+                                <Input
+                                    id="premium"
+                                    type="number"
+                                    step="0.01"
+                                    value={editingCustomer.premium || ""}
+                                    onChange={(e) => setEditingCustomer({ ...editingCustomer, premium: parseFloat(e.target.value) })}
                                 />
                             </div>
                             <div className="space-y-2">
