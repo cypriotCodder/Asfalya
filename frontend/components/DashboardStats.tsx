@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileCheck, Clock } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { API_URL } from "@/lib/api";
 
 export default function DashboardStats() {
     const { t } = useLanguage();
@@ -17,7 +18,7 @@ export default function DashboardStats() {
         const fetchStats = async () => {
             const token = localStorage.getItem("token");
             try {
-                const res = await fetch("http://localhost:8000/api/analytics/stats", {
+                const res = await fetch(`${API_URL}/api/analytics/stats`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {

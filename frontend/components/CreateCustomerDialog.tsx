@@ -10,6 +10,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import { API_URL } from "@/lib/api";
 
 interface CreateCustomerDialogProps {
     onSuccess: () => void;
@@ -39,7 +40,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
         }
 
         try {
-            const res = await fetch("http://localhost:8000/api/customers", {
+            const res = await fetch(`${API_URL}/api/customers`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

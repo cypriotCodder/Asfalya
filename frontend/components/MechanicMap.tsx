@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useState } from "react";
+import { API_URL } from "@/lib/api";
 
 // Fix for default marker icons in Leaflet with Next.js/Webpack
 const iconRetinaUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png';
@@ -37,7 +38,7 @@ export default function MechanicMap() {
         async function fetchMechanics() {
             try {
                 const token = localStorage.getItem("token");
-                const res = await fetch("http://localhost:8000/api/mechanics", {
+                const res = await fetch(`${API_URL}/api/mechanics`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

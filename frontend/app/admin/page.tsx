@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Send, Bell } from "lucide-react";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/context/LanguageContext";
+import { API_URL } from "@/lib/api";
 
 
 export default function AdminPage() {
@@ -38,7 +39,7 @@ export default function AdminPage() {
         setNotifLoading(true);
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch("http://localhost:8000/api/notifications/broadcast", {
+            const res = await fetch(`${API_URL}/api/notifications/broadcast`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

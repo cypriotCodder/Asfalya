@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2 } from "lucide-react";
 
 import { useLanguage } from "@/context/LanguageContext";
+import { API_URL } from "@/lib/api";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -29,10 +30,10 @@ export default function AnalyticsDashboard() {
 
             try {
                 const [policyRes, expiryRes, growthRes, financialRes] = await Promise.all([
-                    fetch("http://localhost:8000/api/analytics/policy-distribution", { headers }),
-                    fetch("http://localhost:8000/api/analytics/expiry-timeline", { headers }),
-                    fetch("http://localhost:8000/api/analytics/customer-growth", { headers }),
-                    fetch("http://localhost:8000/api/analytics/financial-summary", { headers })
+                    fetch(`${API_URL}/api/analytics/policy-distribution`, { headers }),
+                    fetch(`${API_URL}/api/analytics/expiry-timeline`, { headers }),
+                    fetch(`${API_URL}/api/analytics/customer-growth`, { headers }),
+                    fetch(`${API_URL}/api/analytics/financial-summary`, { headers })
                 ]);
 
                 if (!policyRes.ok || !expiryRes.ok || !growthRes.ok || !financialRes.ok) {

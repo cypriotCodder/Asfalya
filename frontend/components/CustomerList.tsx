@@ -21,6 +21,7 @@ import {
 import { Label } from "@/components/ui/label";
 import CreateCustomerDialog from "./CreateCustomerDialog";
 import { useLanguage } from "@/context/LanguageContext";
+import { API_URL } from "@/lib/api";
 
 interface Customer {
     id: number;
@@ -62,7 +63,7 @@ export default function CustomerList() {
 
     const fetchCustomers = async () => {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8000/api/customers", {
+        const res = await fetch(`${API_URL}/api/customers`, {
             headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -76,7 +77,7 @@ export default function CustomerList() {
         if (!confirm("Are you sure you want to delete this customer?")) return;
 
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:8000/api/customers/${id}`, {
+        const res = await fetch(`${API_URL}/api/customers/${id}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
         });
@@ -99,7 +100,7 @@ export default function CustomerList() {
         if (!editingCustomer) return;
 
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:8000/api/customers/${editingCustomer.id}`, {
+        const res = await fetch(`${API_URL}/api/customers/${editingCustomer.id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

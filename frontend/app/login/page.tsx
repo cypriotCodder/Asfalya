@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
+import { API_URL } from "@/lib/api";
 
 export default function LoginPage() {
     const { t } = useLanguage();
@@ -26,7 +27,7 @@ export default function LoginPage() {
         formData.append("password", password);
 
         try {
-            const res = await fetch("http://localhost:8000/token", {
+            const res = await fetch(`${API_URL}/token`, {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: formData,

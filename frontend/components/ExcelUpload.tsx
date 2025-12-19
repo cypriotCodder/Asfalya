@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { API_URL } from "@/lib/api";
 
 export default function ExcelUpload() {
     const [file, setFile] = useState<File | null>(null);
@@ -30,8 +31,8 @@ export default function ExcelUpload() {
         formData.append("file", file);
 
         const endpoint = uploadType === "mechanics"
-            ? "http://localhost:8000/api/upload/mechanics"
-            : "http://localhost:8000/api/upload/customers";
+            ? `${API_URL}/api/upload/mechanics`
+            : `${API_URL}/api/upload/customers`;
 
         try {
             const token = localStorage.getItem("token");
