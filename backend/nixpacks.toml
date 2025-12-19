@@ -1,0 +1,6 @@
+# Force Railway to not use cached pip packages
+[phases.setup]
+nixPkgs = ["python311"]
+
+[phases.install]
+cmds = ["pip install --no-cache-dir -r requirements.txt"]
