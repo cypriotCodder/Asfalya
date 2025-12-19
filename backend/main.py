@@ -106,12 +106,12 @@ async def register_user(user: UserRegister, db: AsyncSession = Depends(get_db)):
 
 origins = [
     "http://localhost:3000",
-    "https://asfalya-delta.vercel.app/"
+    "https://asfalya-delta.vercel.app",  # No trailing slash!
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
