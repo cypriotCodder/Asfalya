@@ -119,8 +119,14 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    print("[STARTUP] Attempting to create database tables...")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print("[STARTUP] Database tables created successfully!")
+    except Exception as e:
+        print(f"[STARTUP ERROR] Failed to create tables: {e}")
+        raise e
 
 @app.get("/")
 def read_root():
