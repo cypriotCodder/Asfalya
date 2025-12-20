@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost/asfalya")
+# Default to localhost, but this WON'T work in Railway
+DEFAULT_DB_URL = "postgresql+asyncpg://user:password@localhost/asfalya"
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DB_URL)
 
 # Railway provides postgresql:// or postgres:// but we need postgresql+asyncpg:// for async SQLAlchemy
 if DATABASE_URL.startswith("postgresql://"):
@@ -15,12 +17,23 @@ elif DATABASE_URL.startswith("postgres://"):
 
 # Ensure the URL has the correct async driver
 if "+asyncpg" not in DATABASE_URL:
-    # Force asyncpg driver if not present
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://")
 
-print(f"[DB] Using DATABASE_URL: {DATABASE_URL[:50]}...")  # Debug (truncated for security)
+# extract host for debugging
+try:
+    db_host = DATABASE_URL.split("@")[1].split("/")[0]
+except:
+    db_host = "unknown"
 
+print(f"[DB] Attempting connection to HOST: {db_host}")
+if "localhost" in db_host or "127.0.0.1" in db_host:
+    print("!!! WARNING: DATABASE_URL points to localhost. This will FAIL in Railway unless you are running a local database service in the same container. !!!")
+    print("!!! Please add DATABASE_URL variable in Railway Backend Service -> Variables !!!")
+
+print(f"[DB] Using DATABASE_URL: {DATABASE_URL[:60]}...") 
+
+# Create engine - let asyncpg negotiate SSL usage by default
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
