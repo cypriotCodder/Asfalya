@@ -5,7 +5,7 @@ from sqlalchemy import select, func
 from pydantic import BaseModel
 import pandas as pd
 import io
-from database import engine, Base, get_db
+from database import engine, Base, get_db, AsyncSessionLocal
 from models import Mechanic, User
 from auth_utils import verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 from fastapi.middleware.cors import CORSMiddleware
@@ -121,11 +121,30 @@ app.add_middleware(
 async def startup():
     print("[STARTUP] Attempting to create database tables...")
     try:
+        # Create tables
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         print("[STARTUP] Database tables created successfully!")
+        
+        # Seed Admin User
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(select(User).where(User.email == "admin@asfalya.com"))
+            if not result.scalars().first():
+                print("[STARTUP] Seeding admin user...")
+                admin_user = User(
+                    email="admin@asfalya.com",
+                    hashed_password=get_password_hash("admin123"),
+                    is_active=True,
+                    is_admin=True
+                )
+                session.add(admin_user)
+                await session.commit()
+                print("[STARTUP] Admin user created: admin@asfalya.com")
+            else:
+                print("[STARTUP] Admin user already exists.")
+                
     except Exception as e:
-        print(f"[STARTUP ERROR] Failed to create tables: {e}")
+        print(f"[STARTUP ERROR] Failed to start application: {e}")
         raise e
 
 @app.get("/")
