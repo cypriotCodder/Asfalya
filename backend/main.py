@@ -134,6 +134,7 @@ async def startup():
                 admin_user = User(
                     email="admin@asfalya.com",
                     hashed_password=get_password_hash("admin123"),
+                    phone="+0000000000",  # Dummy phone number to satisfy constraint
                     is_active=True,
                     is_admin=True
                 )
