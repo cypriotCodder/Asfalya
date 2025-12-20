@@ -33,8 +33,12 @@ if "localhost" in db_host or "127.0.0.1" in db_host:
 
 print(f"[DB] Using DATABASE_URL: {DATABASE_URL[:60]}...") 
 
-# Create engine - let asyncpg negotiate SSL usage by default
-engine = create_async_engine(DATABASE_URL, echo=True)
+# Create engine - disable SSL for Railway internal connections
+engine = create_async_engine(
+    DATABASE_URL, 
+    echo=True,
+    connect_args={"ssl": False}
+)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 Base = declarative_base()
