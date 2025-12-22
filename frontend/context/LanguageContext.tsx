@@ -9,8 +9,17 @@ interface LanguageContextType {
     t: (key: keyof typeof translations['en']) => string;
 }
 
+/**
+ * @brief Context for managing application language state.
+ */
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+/**
+ * @brief Provider component for the LanguageContext.
+ * @details Wraps the application to provide translation capabilities.
+ * 
+ * @param children Child components that will have access to the language context.
+ */
 export function LanguageProvider({ children }: { children: ReactNode }) {
     const [language, setLanguage] = useState<Language>('en');
 

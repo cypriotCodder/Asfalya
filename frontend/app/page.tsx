@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
 import LanguageToggle from '@/components/LanguageToggle';
 
+/**
+ * @brief Landing page component.
+ * @details Entry point of the application. Provides navigation to Admin and Customer portals.
+ */
 export default function Home() {
   const { t } = useLanguage();
 

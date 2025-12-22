@@ -47,10 +47,24 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
 
 @app.get("/api/users/me")
 async def read_users_me(current_user: User = Depends(get_current_user)):
+    """
+    @brief Retrieves the currently authenticated user's profile.
+    
+    @param current_user The current user object (injected by dependency).
+    @return The user object.
+    """
     return current_user
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+    """
+    @brief Authenticates a user and returns an access token.
+    
+    @param form_data The login form data (username, password). Username can be email or phone.
+    @param db The database session.
+    @return A dictionary containing the access token and token type.
+    @throws HTTPException If authentication fails.
+    """
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalars().first()
     
@@ -80,6 +94,14 @@ class UserRegister(BaseModel):
 
 @app.post("/register", response_model=Token)
 async def register_user(user: UserRegister, db: AsyncSession = Depends(get_db)):
+    """
+    @brief Registers a new user.
+    
+    @param user The registration data.
+    @param db The database session.
+    @return A dictionary containing the access token.
+    @throws HTTPException If email or phone is already registered.
+    """
     # Check if user already exists
     result = await db.execute(select(User).where((User.email == user.email) | (User.phone == user.phone)))
     if result.scalars().first():
@@ -125,6 +147,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
+    """
+    @brief Startup event handler.
+    @details Initializes the database, runs migrations for missing OTP columns, and seeds the admin user if not present.
+    """
     print("[STARTUP] Attempting to create database tables...")
     try:
         # Create tables
@@ -167,10 +193,23 @@ async def startup():
 
 @app.get("/")
 def read_root():
+    """
+    @brief Root endpoint.
+    @return A simple greeting message.
+    """
     return {"Hello": "World"}
 
 @app.post("/api/upload/mechanics")
 async def upload_mechanics(file: UploadFile = File(...), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    @brief Uploads a list of mechanics from an Excel file.
+    @details Admin only. Requires 'name', 'address', 'latitude', 'longitude' columns.
+    
+    @param file The Excel file (.xlsx) containing mechanics data.
+    @param db The database session.
+    @param current_user The current authenticated user (must be admin).
+    @return A success message with the count of imported mechanics.
+    """
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     if not file.filename.endswith('.xlsx'):
@@ -205,6 +244,15 @@ async def upload_mechanics(file: UploadFile = File(...), db: AsyncSession = Depe
 
 @app.post("/api/upload/customers")
 async def upload_customers(file: UploadFile = File(...), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    @brief Uploads a list of customers from an Excel file.
+    @details Admin only. Generates OTPs for each new customer and sets a temporary random password.
+    
+    @param file The Excel file (.xlsx) containing customer data.
+    @param db The database session.
+    @param current_user The current authenticated user (must be admin).
+    @return A success message with the count of imported customers.
+    """
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     if not file.filename.endswith('.xlsx'):
@@ -262,6 +310,13 @@ async def upload_customers(file: UploadFile = File(...), db: AsyncSession = Depe
 
 @app.get("/api/mechanics")
 async def get_mechanics(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    @brief Retrieves a list of all mechanics.
+    
+    @param db The database session.
+    @param current_user The current authenticated user.
+    @return A list of Mechanic objects.
+    """
     result = await db.execute(select(Mechanic))
     mechanics = result.scalars().all()
     return mechanics
@@ -293,6 +348,15 @@ class UserUpdate(BaseModel):
 
 @app.get("/api/customers", response_model=list[UserResponse])
 async def get_customers(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    @brief Retrieves a list of all non-admin customers.
+    @details Admin only.
+    
+    @param db The database session.
+    @param current_user The current authenticated user (must be admin).
+    @return A list of UserResponse objects.
+    @throws HTTPException If not authorized.
+    """
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
@@ -499,6 +563,15 @@ async def get_customer_growth(db: AsyncSession = Depends(get_db), current_user: 
 
 @app.get("/api/analytics/financial-summary")
 async def get_financial_summary(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    @brief Calculates financial analytics for the dashboard.
+    @details Returns total revenue, revenue by policy type, and revenue trend over time.
+    
+    @param db The database session.
+    @param current_user The current authenticated user (must be admin).
+    @return A dictionary containing financial metrics.
+    @throws HTTPException If not authorized.
+    """
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
@@ -532,6 +605,15 @@ async def get_financial_summary(db: AsyncSession = Depends(get_db), current_user
 
 @app.get("/api/analytics/stats")
 async def get_dashboard_stats(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    @brief Retrieves high-level dashboard statistics.
+    @details Returns counts for total customers, active policies, and expiring policies.
+    
+    @param db The database session.
+    @param current_user The current authenticated user (must be admin).
+    @return A dictionary containing statistical counts.
+    @throws HTTPException If not authorized.
+    """
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
@@ -562,6 +644,14 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db), current_user: 
 
 @app.post("/auth/request-otp")
 async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
+    """
+    @brief Requests an OTP for account activation.
+    @details Generates a code, stores it hashed in DB, and sends it (mocked) to email.
+    
+    @param request Dictionary containing 'email'.
+    @param db The database session.
+    @return A confirmation message.
+    """
     # Accepts {"email": "..."}
     email = request.get("email")
     if not email:
@@ -590,6 +680,14 @@ async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
 
 @app.post("/auth/verify-otp")
 async def verify_otp(request: dict, db: AsyncSession = Depends(get_db)):
+    """
+    @brief Verifies the provided OTP code.
+    
+    @param request Dictionary containing 'email' and 'code'.
+    @param db The database session.
+    @return A temporary access token for password setting if successful.
+    @throws HTTPException If code is invalid or expired.
+    """
     # Accepts {"email": "...", "code": "..."}
     email = request.get("email")
     code = request.get("code")
@@ -627,6 +725,15 @@ async def set_password_endpoint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
+    """
+    @brief Sets a new password for the user.
+    @details Requires authentication via temporary token from verify-otp. Clears OTP fields upon success.
+    
+    @param request The new password.
+    @param current_user The current authenticated user.
+    @param db The database session.
+    @return A success message.
+    """
     # Update password
     current_user.hashed_password = get_password_hash(request.new_password)
     # Clear OTP fields

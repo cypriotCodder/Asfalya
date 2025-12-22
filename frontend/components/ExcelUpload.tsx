@@ -10,6 +10,10 @@ import { Loader2 } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
 
+/**
+ * @brief Component for uploading Excel files to the backend.
+ * @details Supports importing both mechanics and customers. Handles file selection, type switching, and upload status.
+ */
 export default function ExcelUpload() {
     const { t } = useLanguage();
     const [file, setFile] = useState<File | null>(null);

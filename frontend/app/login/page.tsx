@@ -11,6 +11,11 @@ import { useLanguage } from "@/context/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
 import { API_URL } from "@/lib/api";
 
+/**
+ * @brief Login page component.
+ * @details Handles user authentication, OTP account activation, and password setting.
+ *          Supports switching between Login and Activation views.
+ */
 export default function LoginPage() {
     const { t } = useLanguage();
     const router = useRouter();

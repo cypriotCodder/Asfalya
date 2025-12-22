@@ -12,6 +12,9 @@ const iconRetinaUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2
 const iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
 const shadowUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png';
 
+/**
+ * @brief Represents a mechanic entity for map display.
+ */
 interface Mechanic {
     id: number;
     name: string;
@@ -21,6 +24,11 @@ interface Mechanic {
     phone?: string;
 }
 
+/**
+ * @brief Component to display mechanics on an interactive map.
+ * @details Uses React Leaflet. Fetches mechanics data from the backend.
+ *          Includes a fix for default Leaflet marker icons.
+ */
 export default function MechanicMap() {
     const { t } = useLanguage();
     const [mechanics, setMechanics] = useState<Mechanic[]>([]);
