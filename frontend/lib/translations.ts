@@ -78,6 +78,23 @@ export const translations = {
         notif_audience_renewal: "Expiring in 1 Week",
         notif_send: "Send Broadcast",
         notif_sending: "Sending...",
+        // Landing Page
+        landing_title: "Asfalya",
+        landing_subtitle: "Insurance Notification & Insights Platform",
+        admin_portal: "Admin Portal",
+        customer_portal: "Customer Portal",
+
+        // Excel Upload
+        import_data: "Import Data",
+        mechanics: "Mechanics",
+        // customers: "Customers", // DUPLICATE REMOVED
+        upload_button: "Upload",
+        uploading: "Uploading...",
+        upload_success: "Success",
+        upload_error: "Error",
+
+        // Mechanic Map
+        book_specifics: "Book specifics",
     },
     tr: {
         // Dashboard
@@ -156,5 +173,23 @@ export const translations = {
         notif_audience_renewal: "1 Hafta İçinde Bitenler",
         notif_send: "Gönder",
         notif_sending: "Gönderiliyor...",
+
+        // Landing Page
+        landing_title: "Asfalya",
+        landing_subtitle: "Sigorta Bildirim ve Analiz Platformu",
+        admin_portal: "Yönetici Paneli",
+        customer_portal: "Müşteri Paneli",
+
+        // Excel Upload
+        import_data: "Veri İçe Aktar",
+        mechanics: "Tamirciler",
+        // customers: "Müşteriler", // DUPLICATE REMOVED
+        upload_button: "Yükle",
+        uploading: "Yükleniyor...",
+        upload_success: "Başarılı",
+        upload_error: "Hata",
+
+        // Mechanic Map
+        book_specifics: "Randevu Al",
     }
 };

@@ -8,8 +8,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { API_URL } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function ExcelUpload() {
+    const { t } = useLanguage();
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
@@ -50,10 +52,10 @@ export default function ExcelUpload() {
                 throw new Error(data.detail || "Upload failed");
             }
 
-            setMessage(`Success: ${data.message}`);
+            setMessage(`${t('upload_success')}: ${data.message}`);
             setFile(null);
         } catch (error: any) {
-            setMessage(`Error: ${error.message}`);
+            setMessage(`${t('upload_error')}: ${error.message}`);
         } finally {
             setUploading(false);
         }
@@ -62,18 +64,18 @@ export default function ExcelUpload() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Import Data (Excel)</CardTitle>
+                <CardTitle>{t('import_data')} (Excel)</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col gap-4">
                     <RadioGroup defaultValue="mechanics" onValueChange={(val: string) => setUploadType(val as "mechanics" | "customers")} className="flex gap-4">
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="mechanics" id="r1" />
-                            <Label htmlFor="r1">Mechanics</Label>
+                            <Label htmlFor="r1">{t('mechanics')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="customers" id="r2" />
-                            <Label htmlFor="r2">Customers</Label>
+                            <Label htmlFor="r2">{t('customers')}</Label>
                         </div>
                     </RadioGroup>
 
@@ -88,14 +90,14 @@ export default function ExcelUpload() {
                         {uploading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Uploading...
+                                {t('uploading')}
                             </>
                         ) : (
-                            `Upload ${uploadType === 'mechanics' ? 'Mechanics' : 'Customers'}`
+                            `${t('upload_button')} ${uploadType === 'mechanics' ? t('mechanics') : t('customers')}`
                         )}
                     </Button>
                     {message && (
-                        <p className={`text-sm ${message.startsWith("Error") ? "text-red-500" : "text-green-500"}`}>
+                        <p className={`text-sm ${message.startsWith(t('upload_error')) ? "text-red-500" : "text-green-500"}`}>
                             {message}
                         </p>
                     )}

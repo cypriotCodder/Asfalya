@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 // Fix for default marker icons in Leaflet with Next.js/Webpack
 const iconRetinaUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png';
@@ -21,6 +22,7 @@ interface Mechanic {
 }
 
 export default function MechanicMap() {
+    const { t } = useLanguage();
     const [mechanics, setMechanics] = useState<Mechanic[]>([]);
 
     useEffect(() => {
@@ -84,7 +86,7 @@ export default function MechanicMap() {
                                 <p>{mech.address}</p>
                                 {mech.phone && <p className="text-xs text-zinc-500">{mech.phone}</p>}
                                 <button className="mt-2 bg-blue-600 text-white px-2 py-1 rounded text-xs w-full">
-                                    Book specifics
+                                    {t('book_specifics')}
                                 </button>
                             </div>
                         </Popup>

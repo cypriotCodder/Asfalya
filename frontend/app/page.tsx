@@ -1,25 +1,35 @@
+"use client";
+
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageToggle from '@/components/LanguageToggle';
 
 export default function Home() {
+  const { t } = useLanguage();
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-zinc-950 text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-zinc-950 text-white relative">
+      <div className="absolute top-4 right-4">
+        <LanguageToggle />
+      </div>
+
       <h1 className="text-6xl font-bold mb-8 bg-gradient-to-r from-blue-400 to-emerald-400 text-transparent bg-clip-text">
-        Asfalya
+        {t('landing_title')}
       </h1>
       <p className="text-xl mb-12 text-zinc-400">
-        Insurance Notification & Insights Platform
+        {t('landing_subtitle')}
       </p>
 
       <div className="flex gap-6">
         <Link href="/admin">
           <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-            Admin Portal
+            {t('admin_portal')}
           </Button>
         </Link>
         <Link href="/customer">
           <Button size="lg" variant="outline" className="text-white hover:text-black hover:bg-white border-zinc-700">
-            Customer Portal
+            {t('customer_portal')}
           </Button>
         </Link>
       </div>
