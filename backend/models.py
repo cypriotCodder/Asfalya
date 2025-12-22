@@ -13,6 +13,10 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
+    # Activation / OTP
+    otp_code = Column(String, nullable=True)
+    otp_expiry = Column(DateTime(timezone=True), nullable=True)
+    
     # Policy Details
     full_name = Column(String, nullable=True)
     premium = Column(Float, default=0.0, nullable=True) # Changed to Float to match DB schema

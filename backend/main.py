@@ -7,7 +7,7 @@ import pandas as pd
 import io
 from database import engine, Base, get_db, AsyncSessionLocal
 from models import Mechanic, User
-from auth_utils import verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
+from auth_utils import verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES, generate_otp
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import timedelta, datetime
 from jose import JWTError, jwt
@@ -222,10 +222,20 @@ async def upload_customers(file: UploadFile = File(...), db: AsyncSession = Depe
             # In a real app we'd query DB, but here we'll let unique constraint handle it or do a pre-check
             # For now let's just create and catch integrity errors if needed, or better, skip provided duplicates in this simple implementation
             
+            otp = generate_otp()
+            # MOCK EMAIL SENDING
+            print(f"==========================================")
+            print(f" [EMAIL MOCK] New Customer: {email_val}")
+            print(f" [EMAIL MOCK] Activation Code: {otp}")
+            print(f"==========================================")
+
             user = User(
                 email=email_val,
                 phone=phone_val,
-                hashed_password="auth123", # Default password
+                hashed_password=get_password_hash(generate_otp(12)), # Random initial password
+                otp_code=get_password_hash(otp),
+                otp_expiry=datetime.utcnow() + timedelta(days=7), # Give them a week to activate
+                is_active=True, # They are active, just can't login without password
                 is_admin=False
             )
             db.add(user)
@@ -302,10 +312,19 @@ async def create_customer(user_create: UserCreate, db: AsyncSession = Depends(ge
         if existing_phone.scalars().first():
              raise HTTPException(status_code=400, detail="Phone already registered")
 
+    otp = generate_otp()
+    # MOCK EMAIL SENDING
+    print(f"==========================================")
+    print(f" [EMAIL MOCK] New Customer: {user_create.email or user_create.phone}")
+    print(f" [EMAIL MOCK] Activation Code: {otp}")
+    print(f"==========================================")
+
     new_user = User(
         email=user_create.email,
         phone=user_create.phone,
-        hashed_password=get_password_hash("123456"), # Default password
+        hashed_password=get_password_hash(generate_otp(12)), # Random initial password
+        otp_code=get_password_hash(otp),
+        otp_expiry=datetime.utcnow() + timedelta(days=7),
         is_active=True,
         is_admin=False,
         full_name=user_create.full_name,
@@ -527,3 +546,81 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db), current_user: 
         "active_policies": active_policies,
         "expiring_soon": expiring_soon
     }
+
+@app.post("/auth/request-otp")
+async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
+    # Accepts {"email": "..."}
+    email = request.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+        
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalars().first()
+    
+    if not user:
+        # Prevent enumeration
+        return {"message": "If this email is registered, a code has been sent."}
+        
+    otp = generate_otp()
+    user.otp_code = get_password_hash(otp) # Store hashed OTP for security
+    user.otp_expiry = datetime.utcnow() + timedelta(minutes=15)
+    await db.commit()
+    
+    # MOCK EMAIL SENDING
+    print(f"==========================================")
+    print(f" [EMAIL MOCK] To: {email}")
+    print(f" [EMAIL MOCK] Subject: Your Activation Code")
+    print(f" [EMAIL MOCK] Code: {otp}")
+    print(f"==========================================")
+    
+    return {"message": "If this email is registered, a code has been sent."}
+
+@app.post("/auth/verify-otp")
+async def verify_otp(request: dict, db: AsyncSession = Depends(get_db)):
+    # Accepts {"email": "...", "code": "..."}
+    email = request.get("email")
+    code = request.get("code")
+    
+    if not email or not code:
+        raise HTTPException(status_code=400, detail="Email and code are required")
+        
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalars().first()
+    
+    if not user or not user.otp_code or not user.otp_expiry:
+         raise HTTPException(status_code=400, detail="Invalid code or email")
+         
+    if datetime.utcnow() > user.otp_expiry:
+        raise HTTPException(status_code=400, detail="Code expired")
+        
+    # Verify hashed code
+    if not verify_password(code, user.otp_code):
+        raise HTTPException(status_code=400, detail="Invalid code")
+        
+    # Valid! Issue a temporary token specific for password reset
+    access_token_expires = timedelta(minutes=15) # Short life for this token
+    access_token = create_access_token(
+        data={"sub": user.email, "scope": "reset-password"}, expires_delta=access_token_expires
+    )
+    
+    return {"access_token": access_token, "token_type": "bearer", "message": "Code verified"}
+
+class SetPasswordRequest(BaseModel):
+    new_password: str
+
+@app.post("/auth/set-password")
+async def set_password_endpoint(
+    request: SetPasswordRequest, 
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # Update password
+    current_user.hashed_password = get_password_hash(request.new_password)
+    # Clear OTP fields
+    current_user.otp_code = None
+    current_user.otp_expiry = None
+    # Ensure active
+    current_user.is_active = True
+    
+    await db.commit()
+    return {"message": "Password updated successfully"}

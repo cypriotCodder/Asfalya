@@ -24,3 +24,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+import random
+import string
+
+def generate_otp(length=6):
+    return ''.join(random.choices(string.digits, k=length))
