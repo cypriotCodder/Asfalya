@@ -2,6 +2,8 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.future import select
+from sqlalchemy import text
 from pydantic import BaseModel
 import pandas as pd
 import io
@@ -128,6 +130,17 @@ async def startup():
         # Create tables
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            
+            # --- MIGRATION: ADD MISSING COLUMNS ---
+            print("[STARTUP] Checking for missing columns...")
+            try:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_code VARCHAR"))
+                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expiry TIMESTAMP WITH TIME ZONE"))
+                print("[STARTUP] Migration successful: Added otp_code and otp_expiry")
+            except Exception as e:
+                print(f"[STARTUP MIGRATION WARNING] {e}")
+            # --------------------------------------
+
         print("[STARTUP] Database tables created successfully!")
         
         # Seed Admin User
