@@ -320,6 +320,8 @@ async def get_mechanics(db: AsyncSession = Depends(get_db), current_user: User =
     result = await db.execute(select(Mechanic))
     mechanics = result.scalars().all()
     return mechanics
+
+
 class UserResponse(BaseModel):
     id: int
     email: str | None

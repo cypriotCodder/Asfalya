@@ -48,8 +48,18 @@ export default function SessionManager() {
         // But simply setting the timeout above is usually efficient.
         // We run it once on mount.
         const cleanup = checkSession();
-        return cleanup;
 
+        // Force refresh every 30 minutes
+        const refreshInterval = 30 * 60 * 1000; // 30 minutes
+        const intervalId = setInterval(() => {
+            console.log("Auto-refreshing page...");
+            window.location.reload();
+        }, refreshInterval);
+
+        return () => {
+            if (cleanup) cleanup();
+            clearInterval(intervalId);
+        };
     }, [router]);
 
     return null; // This component renders nothing
