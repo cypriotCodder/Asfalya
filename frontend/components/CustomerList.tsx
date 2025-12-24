@@ -173,7 +173,7 @@ export default function CustomerList() {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    {customer.premium ? `€${customer.premium.toFixed(2)}` : "-"}
+                                    {customer.premium ? `£${customer.premium.toFixed(2)}` : "-"}
                                 </TableCell>
                                 <TableCell>
                                     {customer.policy_expiry ? new Date(customer.policy_expiry).toLocaleDateString() : "-"}

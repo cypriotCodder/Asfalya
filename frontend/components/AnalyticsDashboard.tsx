@@ -142,9 +142,9 @@ export default function AnalyticsDashboard() {
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="month" />
                                     <YAxis />
-                                    <RechartsTooltip formatter={(value) => `€${value}`} />
+                                    <RechartsTooltip formatter={(value) => `£${value}`} />
                                     <Legend />
-                                    <Bar dataKey="amount" fill="#82ca9d" name={language === 'tr' ? "Ciro (€)" : "Revenue (€)"} />
+                                    <Bar dataKey="amount" fill="#82ca9d" name={language === 'tr' ? "Ciro (£)" : "Revenue (£)"} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </CardContent>

@@ -157,7 +157,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="premium">Premium (€)</Label>
+                        <Label htmlFor="premium">Premium (£)</Label>
                         <Input
                             id="premium"
                             type="number"

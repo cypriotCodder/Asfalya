@@ -74,7 +74,7 @@ export default function CustomerPortal() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
-                                {user?.premium ? `€${user.premium.toFixed(2)}` : "€0.00"}
+                                {user?.premium ? `£${user.premium.toFixed(2)}` : "£0.00"}
                             </div>
                             <p className="text-xs text-muted-foreground mt-2">
                                 {t('next_renewal')}: {user?.policy_expiry ? new Date(user.policy_expiry).toLocaleDateString() : "N/A"}
