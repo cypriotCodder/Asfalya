@@ -18,7 +18,11 @@ import os
 app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+if SECRET_KEY is None:
+    raise ValueError("Missing SECRET_KEY environment variable")
+
 ALGORITHM = "HS256"
 
 class Token(BaseModel):
@@ -173,10 +177,15 @@ async def startup():
         async with AsyncSessionLocal() as session:
             result = await session.execute(select(User).where(User.email == "admin@asfalya.com"))
             if not result.scalars().first():
+                ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+                if not ADMIN_PASSWORD:
+                    print("[STARTUP WARNING] ADMIN_PASSWORD not set, admin user cannot be created.")
+                    return
+
                 print("[STARTUP] Seeding admin user...")
                 admin_user = User(
                     email="admin@asfalya.com",
-                    hashed_password=get_password_hash("admin123"),
+                    hashed_password=get_password_hash(ADMIN_PASSWORD),
                     phone="+0000000000",  # Dummy phone number to satisfy constraint
                     is_active=True,
                     is_admin=True

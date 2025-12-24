@@ -5,9 +5,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Default to localhost, but this WON'T work in Railway
-DEFAULT_DB_URL = "postgresql+asyncpg://user:password@localhost/asfalya"
-DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DB_URL)
+# Database URL must be set in the environment.
+# Example for local dev: "postgresql+asyncpg://user:password@localhost/asfalya"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("Missing DATABASE_URL environment variable. Please set it in your .env file or environment.")
 
 # Railway provides postgresql:// or postgres:// but we need postgresql+asyncpg:// for async SQLAlchemy
 if DATABASE_URL.startswith("postgresql://"):

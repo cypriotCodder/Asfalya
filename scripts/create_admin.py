@@ -1,4 +1,5 @@
 import asyncio
+import os
 from backend.database import engine, AsyncSessionLocal, Base
 from backend.models import User
 from backend.auth_utils import get_password_hash
@@ -15,15 +16,20 @@ async def create_admin():
             print("Admin user already exists")
             return
 
+        ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+        if not ADMIN_PASSWORD:
+            print("ADMIN_PASSWORD environment variable not set. Cannot create admin user.")
+            return
+
         admin_user = User(
             email="admin@asfalya.com",
-            hashed_password=get_password_hash("admin123"),
+            hashed_password=get_password_hash(ADMIN_PASSWORD),
             is_active=True,
             is_admin=True
         )
         session.add(admin_user)
         await session.commit()
-        print("Admin user created: admin@asfalya.com / admin123")
+        print("Admin user created: admin@asfalya.com")
 
 if __name__ == "__main__":
     asyncio.run(create_admin())
