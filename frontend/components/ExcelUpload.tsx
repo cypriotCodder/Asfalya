@@ -53,7 +53,7 @@ export default function ExcelUpload() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.detail || "Upload failed");
+                throw new Error(data.detail || t('upload_failed_msg'));
             }
 
             setMessage(`${t('upload_success')}: ${data.message}`);

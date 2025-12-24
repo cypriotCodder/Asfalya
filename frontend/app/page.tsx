@@ -37,6 +37,10 @@ export default function Home() {
           </Button>
         </Link>
       </div>
+
+      <footer className="absolute bottom-8 text-zinc-600 text-sm">
+        © {new Date().getFullYear()} Asfalya. {t('all_rights_reserved')}
+      </footer>
     </main>
   );
 }

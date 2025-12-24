@@ -74,7 +74,7 @@ export default function CustomerList() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this customer?")) return;
+        if (!confirm(t('delete_confirm'))) return;
 
         const token = localStorage.getItem("token");
         const res = await fetch(`${API_URL}/api/customers/${id}`, {
@@ -85,7 +85,7 @@ export default function CustomerList() {
         if (res.ok) {
             fetchCustomers();
         } else {
-            alert("Failed to delete customer");
+            alert(t('delete_failed'));
         }
     };
 
@@ -123,7 +123,7 @@ export default function CustomerList() {
             setEditingCustomer(null);
             fetchCustomers();
         } else {
-            alert("Failed to update customer");
+            alert(t('update_failed'));
         }
     };
 
@@ -180,7 +180,7 @@ export default function CustomerList() {
                                 </TableCell>
                                 <TableCell>
                                     <span className={`px-2 py-1 rounded text-xs ${customer.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                        {customer.is_active ? "Active" : "Inactive"}
+                                        {customer.is_active ? t('active') : t('inactive')}
                                     </span>
                                 </TableCell>
                                 <TableCell className="text-right space-x-2 whitespace-nowrap">
@@ -204,7 +204,7 @@ export default function CustomerList() {
                         {filteredCustomers.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={9} className="text-center h-24">
-                                    No customers found.
+                                    {t('no_customers')}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -215,12 +215,12 @@ export default function CustomerList() {
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Customer</DialogTitle>
+                        <DialogTitle>{t('edit_customer_title')}</DialogTitle>
                     </DialogHeader>
                     {editingCustomer && (
                         <form onSubmit={handleEditSubmit} className="grid grid-cols-2 gap-4">
                             <div className="space-y-2 col-span-2">
-                                <Label htmlFor="full_name">Full Name</Label>
+                                <Label htmlFor="full_name">{t('full_name_label')}</Label>
                                 <Input
                                     id="full_name"
                                     value={editingCustomer.full_name || ""}
@@ -228,7 +228,7 @@ export default function CustomerList() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">{t('email_label')}</Label>
                                 <Input
                                     id="email"
                                     value={editingCustomer.email || ""}
@@ -236,7 +236,7 @@ export default function CustomerList() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="phone">Phone</Label>
+                                <Label htmlFor="phone">{t('phone_label')}</Label>
                                 <Input
                                     id="phone"
                                     value={editingCustomer.phone || ""}
@@ -245,7 +245,7 @@ export default function CustomerList() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="vehicle_plate">Vehicle Plate</Label>
+                                <Label htmlFor="vehicle_plate">{t('vehicle_plate')}</Label>
                                 <Input
                                     id="vehicle_plate"
                                     value={editingCustomer.vehicle_plate || ""}
@@ -253,7 +253,7 @@ export default function CustomerList() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="policy_number">Policy Number</Label>
+                                <Label htmlFor="policy_number">{t('policy_number')}</Label>
                                 <Input
                                     id="policy_number"
                                     value={editingCustomer.policy_number || ""}
@@ -261,7 +261,7 @@ export default function CustomerList() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="policy_type">Policy Type</Label>
+                                <Label htmlFor="policy_type">{t('policy_type')}</Label>
                                 <Input
                                     id="policy_type"
                                     value={editingCustomer.policy_type || ""}
@@ -269,7 +269,7 @@ export default function CustomerList() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="premium">Premium (€)</Label>
+                                <Label htmlFor="premium">Premium (£)</Label>
                                 <Input
                                     id="premium"
                                     type="number"
@@ -279,7 +279,7 @@ export default function CustomerList() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="policy_expiry">Policy Expiry</Label>
+                                <Label htmlFor="policy_expiry">{t('policy_expiry')}</Label>
                                 <Input
                                     id="policy_expiry"
                                     type="date"
@@ -289,7 +289,7 @@ export default function CustomerList() {
                             </div>
 
                             <div className="col-span-2">
-                                <Button type="submit" className="w-full">Save Changes</Button>
+                                <Button type="submit" className="w-full">{t('save_changes')}</Button>
                             </div>
                         </form>
                     )}

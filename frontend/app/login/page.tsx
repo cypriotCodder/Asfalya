@@ -49,15 +49,15 @@ export default function LoginPage() {
                 body: formData,
             });
 
-            if (!res.ok) throw new Error("Invalid credentials");
+            if (!res.ok) throw new Error(t('err_invalid_credentials'));
 
             const data = await res.json();
             localStorage.setItem("token", data.access_token);
             document.cookie = `token=${data.access_token}; path=/;`; // For middleware
 
             router.push("/");
-        } catch (err) {
-            setError("Login failed. Please check your credentials.");
+        } catch (err: any) {
+            setError(err.message || t('err_login_failed'));
         }
     };
 
@@ -70,10 +70,10 @@ export default function LoginPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),
             });
-            if (!res.ok) throw new Error("Failed to send code");
+            if (!res.ok) throw new Error(t('err_send_code_failed'));
             setActivationStep("verify");
-        } catch (err) {
-            setError("Failed to request code. Please try again.");
+        } catch (err: any) {
+            setError(err.message || t('err_request_code_failed'));
         }
     };
 
@@ -86,12 +86,12 @@ export default function LoginPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, code: otpCode }),
             });
-            if (!res.ok) throw new Error("Invalid code");
+            if (!res.ok) throw new Error(t('err_invalid_code'));
             const data = await res.json();
             setTempToken(data.access_token);
             setActivationStep("password");
-        } catch (err) {
-            setError("Invalid code. Please try again.");
+        } catch (err: any) {
+            setError(t('err_invalid_code_retry'));
         }
     };
 
@@ -99,7 +99,7 @@ export default function LoginPage() {
         e.preventDefault();
         setError("");
         if (newPassword !== confirmPassword) {
-            setError("Passwords do not match");
+            setError(t('err_passwords_mismatch'));
             return;
         }
         try {
@@ -111,14 +111,14 @@ export default function LoginPage() {
                 },
                 body: JSON.stringify({ new_password: newPassword }),
             });
-            if (!res.ok) throw new Error("Failed to set password");
+            if (!res.ok) throw new Error(t('err_set_password_failed'));
 
             // Auto login or redirect to login
-            alert("Password set successfully! Please login.");
+            alert(t('success_password_set'));
             setView("login");
             setPassword("");
-        } catch (err) {
-            setError("Failed to set password.");
+        } catch (err: any) {
+            setError(err.message || t('err_set_password_failed'));
         }
     };
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
 
                 <Card className="w-full max-w-md">
                     <CardHeader>
-                        <CardTitle className="text-2xl text-center">Activate Account</CardTitle>
+                        <CardTitle className="text-2xl text-center">{t('activate_title')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {activationStep === "request" && (
@@ -148,15 +148,15 @@ export default function LoginPage() {
                                     />
                                 </div>
                                 {error && <p className="text-red-500 text-sm">{error}</p>}
-                                <Button type="submit" className="w-full">Send Activation Code</Button>
+                                <Button type="submit" className="w-full">{t('send_code_button')}</Button>
                             </form>
                         )}
 
                         {activationStep === "verify" && (
                             <form onSubmit={handleVerifyOtp} className="space-y-4">
-                                <p className="text-sm text-center text-zinc-500">Code sent to {email}</p>
+                                <p className="text-sm text-center text-zinc-500">{t('code_sent_to')} {email}</p>
                                 <div className="space-y-2">
-                                    <Label htmlFor="otp">Enter Code</Label>
+                                    <Label htmlFor="otp">{t('enter_code_label')}</Label>
                                     <Input
                                         id="otp"
                                         type="text"
@@ -167,7 +167,7 @@ export default function LoginPage() {
                                     />
                                 </div>
                                 {error && <p className="text-red-500 text-sm">{error}</p>}
-                                <Button type="submit" className="w-full">Verify Code</Button>
+                                <Button type="submit" className="w-full">{t('verify_code_button')}</Button>
                             </form>
                         )}
 
@@ -194,13 +194,13 @@ export default function LoginPage() {
                                     />
                                 </div>
                                 {error && <p className="text-red-500 text-sm">{error}</p>}
-                                <Button type="submit" className="w-full">Set Password</Button>
+                                <Button type="submit" className="w-full">{t('set_password_button')}</Button>
                             </form>
                         )}
                     </CardContent>
                     <CardFooter className="flex justify-center">
                         <button onClick={() => setView("login")} className="text-sm text-blue-600 hover:underline">
-                            Back to Login
+                            {t('back_to_login')}
                         </button>
                     </CardFooter>
                 </Card>
@@ -249,7 +249,7 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2 justify-center">
                     <button onClick={() => setView("activate")} className="text-sm text-blue-600 hover:underline font-bold">
-                        First Time Login? Activate Account
+                        {t('first_time_login')}
                     </button>
                     <Link href="/signup" className="text-sm text-zinc-500 hover:underline">
                         {t('signup_link')}

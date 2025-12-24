@@ -50,15 +50,15 @@ export default function AdminPage() {
 
             if (res.ok) {
                 const data = await res.json();
-                alert(`Success: Sent ${data.sent_count} messages`);
+                alert(`${t('notif_success_prefix')} ${data.sent_count} ${t('notif_success_suffix')}`);
                 setNotifOpen(false);
                 setNotifData({ message: "", target_audience: "all" });
             } else {
-                alert("Failed to send notification");
+                alert(t('notif_failed'));
             }
         } catch (e) {
             console.error(e);
-            alert("Error sending notification");
+            alert(t('notif_error'));
         } finally {
             setNotifLoading(false);
         }

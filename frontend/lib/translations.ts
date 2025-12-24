@@ -78,6 +78,11 @@ export const translations = {
         notif_audience_renewal: "Expiring in 1 Week",
         notif_send: "Send Broadcast",
         notif_sending: "Sending...",
+        notif_success_prefix: "Success: Sent",
+        notif_success_suffix: "messages",
+        notif_failed: "Failed to send notification",
+        notif_error: "Error sending notification",
+
         // Landing Page
         landing_title: "Asfalya",
         landing_subtitle: "Insurance Notification & Insights Platform",
@@ -95,6 +100,51 @@ export const translations = {
 
         // Mechanic Map
         book_specifics: "Book specifics",
+
+        // Create Customer Dialog
+        add_customer_title: "Add New Customer",
+        vehicle_plate: "Vehicle Plate",
+        policy_number: "Policy Number",
+        policy_type: "Policy Type",
+        policy_expiry: "Policy Expiry",
+        create_customer_button: "Create Customer",
+        customer_created: "Customer created successfully!",
+        customer_create_failed: "Failed to create customer",
+        validation_email_phone: "Please provide at least an email or phone number.",
+        error_occurred: "An error occurred.",
+
+        // Status & Actions
+        inactive: "Inactive",
+        delete_confirm: "Are you sure you want to delete this customer?",
+        delete_failed: "Failed to delete customer",
+        update_failed: "Failed to update customer",
+        no_customers: "No customers found.",
+        edit_customer_title: "Edit Customer",
+
+        // Activation & Errors
+        activate_title: "Activate Account",
+        send_code_button: "Send Activation Code",
+        code_sent_to: "Code sent to",
+        enter_code_label: "Enter Code",
+        verify_code_button: "Verify Code",
+        set_password_button: "Set Password",
+        back_to_login: "Back to Login",
+        first_time_login: "First Time Login? Activate Account",
+        err_invalid_credentials: "Invalid credentials. Please check your credentials.",
+        err_login_failed: "Login failed. Please check your credentials.",
+        err_send_code_failed: "Failed to send code",
+        err_request_code_failed: "Failed to request code. Please try again.",
+        err_invalid_code: "Invalid code",
+        err_invalid_code_retry: "Invalid code. Please try again.",
+        err_passwords_mismatch: "Passwords do not match",
+        err_set_password_failed: "Failed to set password",
+        err_registration_failed: "Registration failed",
+        err_something_went_wrong: "Something went wrong",
+        success_password_set: "Password set successfully! Please login.",
+        upload_failed_msg: "Upload failed",
+
+        // Footer
+        all_rights_reserved: "All rights reserved.",
     },
     tr: {
         // Dashboard
@@ -173,6 +223,10 @@ export const translations = {
         notif_audience_renewal: "1 Hafta İçinde Bitenler",
         notif_send: "Gönder",
         notif_sending: "Gönderiliyor...",
+        notif_success_prefix: "Başarılı:",
+        notif_success_suffix: "mesaj gönderildi",
+        notif_failed: "Bildirim gönderilemedi",
+        notif_error: "Bildirim gönderilirken hata oluştu",
 
         // Landing Page
         landing_title: "Asfalya",
@@ -191,5 +245,50 @@ export const translations = {
 
         // Mechanic Map
         book_specifics: "Randevu Al",
+
+        // Create Customer Dialog
+        add_customer_title: "Yeni Müşteri Ekle",
+        vehicle_plate: "Araç Plakası",
+        policy_number: "Poliçe Numarası",
+        policy_type: "Poliçe Türü",
+        policy_expiry: "Poliçe Bitiş Tarihi",
+        create_customer_button: "Müşteri Oluştur",
+        customer_created: "Müşteri başarıyla oluşturuldu!",
+        customer_create_failed: "Müşteri oluşturulamadı",
+        validation_email_phone: "Lütfen en az bir e-posta veya telefon numarası girin.",
+        error_occurred: "Bir hata oluştu.",
+
+        // Status & Actions
+        inactive: "Pasif",
+        delete_confirm: "Bu müşteriyi silmek istediğinizden emin misiniz?",
+        delete_failed: "Müşteri silinemedi",
+        update_failed: "Müşteri güncellenemedi",
+        no_customers: "Müşteri bulunamadı.",
+        edit_customer_title: "Müşteriyi Düzenle",
+
+        // Activation & Errors
+        activate_title: "Hesabı Etkinleştir",
+        send_code_button: "Etkinleştirme Kodu Gönder",
+        code_sent_to: "Kod gönderildi:",
+        enter_code_label: "Kodu Girin",
+        verify_code_button: "Kodu Doğrula",
+        set_password_button: "Şifreyi Güncelle",
+        back_to_login: "Girişe Dön",
+        first_time_login: "İlk Kez mi Giriş Yapıyorsunuz? Hesabı Etkinleştir",
+        err_invalid_credentials: "Geçersiz bilgiler. Lütfen bilgilerinizi kontrol edin.",
+        err_login_failed: "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.",
+        err_send_code_failed: "Kod gönderilemedi",
+        err_request_code_failed: "Kod isteği başarısız. Lütfen tekrar deneyin.",
+        err_invalid_code: "Geçersiz kod",
+        err_invalid_code_retry: "Geçersiz kod. Lütfen tekrar deneyin.",
+        err_passwords_mismatch: "Şifreler eşleşmiyor",
+        err_set_password_failed: "Şifre güncellenemedi",
+        err_registration_failed: "Kayıt başarısız",
+        err_something_went_wrong: "Bir şeyler yanlış gitti",
+        success_password_set: "Şifre başarıyla güncellendi! Lütfen giriş yapın.",
+        upload_failed_msg: "Yükleme başarısız",
+
+        // Footer
+        all_rights_reserved: "Tüm hakları saklıdır.",
     }
 };

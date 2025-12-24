@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { API_URL } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface CreateCustomerDialogProps {
     onSuccess: () => void;
 }
 
 export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialogProps) {
+    const { t } = useLanguage();
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
@@ -35,7 +37,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
 
         // Simple validation: Ensure at least email or phone is present
         if (!formData.email && !formData.phone) {
-            alert("Please provide at least an email or phone number.");
+            alert(t('validation_email_phone'));
             return;
         }
 
@@ -59,7 +61,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
             });
 
             if (res.ok) {
-                alert("Customer created successfully!");
+                alert(t('customer_created'));
                 setOpen(false);
                 setFormData({
                     email: "",
@@ -74,11 +76,11 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                 onSuccess();
             } else {
                 const error = await res.json();
-                alert(`Failed to create customer: ${error.detail}`);
+                alert(`${t('customer_create_failed')}: ${error.detail}`);
             }
         } catch (err) {
             console.error(err);
-            alert("An error occurred.");
+            alert(t('error_occurred'));
         }
     };
 
@@ -87,16 +89,16 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
             <DialogTrigger asChild>
                 <Button className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Add Customer
+                    {t('add_customer')}
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Add New Customer</DialogTitle>
+                    <DialogTitle>{t('add_customer_title')}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="full_name">Full Name</Label>
+                        <Label htmlFor="full_name">{t('full_name_label')}</Label>
                         <Input
                             id="full_name"
                             value={formData.full_name}
@@ -106,7 +108,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{t('email_label')}</Label>
                             <Input
                                 id="email"
                                 value={formData.email}
@@ -115,7 +117,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="phone">Phone</Label>
+                            <Label htmlFor="phone">{t('phone_label')}</Label>
                             <Input
                                 id="phone"
                                 value={formData.phone}
@@ -126,7 +128,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="vehicle_plate">Vehicle Plate</Label>
+                        <Label htmlFor="vehicle_plate">{t('vehicle_plate')}</Label>
                         <Input
                             id="vehicle_plate"
                             value={formData.vehicle_plate}
@@ -137,7 +139,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="policy_number">Policy Number</Label>
+                            <Label htmlFor="policy_number">{t('policy_number')}</Label>
                             <Input
                                 id="policy_number"
                                 value={formData.policy_number}
@@ -146,7 +148,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="policy_type">Policy Type</Label>
+                            <Label htmlFor="policy_type">{t('policy_type')}</Label>
                             <Input
                                 id="policy_type"
                                 value={formData.policy_type}
@@ -169,7 +171,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="policy_expiry">Policy Expiry</Label>
+                        <Label htmlFor="policy_expiry">{t('policy_expiry')}</Label>
                         <Input
                             id="policy_expiry"
                             type="date"
@@ -178,7 +180,7 @@ export default function CreateCustomerDialog({ onSuccess }: CreateCustomerDialog
                         />
                     </div>
 
-                    <Button type="submit" className="w-full">Create Customer</Button>
+                    <Button type="submit" className="w-full">{t('create_customer_button')}</Button>
                 </form>
             </DialogContent>
         </Dialog>

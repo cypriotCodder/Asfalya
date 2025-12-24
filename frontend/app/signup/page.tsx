@@ -29,7 +29,7 @@ export default function SignupPage() {
         setError("");
 
         if (formData.password !== formData.confirm_password) {
-            setError("Passwords do not match");
+            setError(t('err_passwords_mismatch'));
             return;
         }
 
@@ -55,10 +55,10 @@ export default function SignupPage() {
                 router.push("/customer");
             } else {
                 const data = await res.json();
-                setError(data.detail || "Registration failed");
+                setError(data.detail || t('err_registration_failed'));
             }
         } catch (err) {
-            setError("Something went wrong");
+            setError(t('err_something_went_wrong'));
         } finally {
             setLoading(false);
         }

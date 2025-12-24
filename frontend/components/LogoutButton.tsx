@@ -2,8 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function LogoutButton() {
+    const { t } = useLanguage();
     const router = useRouter();
 
     const handleLogout = () => {
@@ -14,7 +16,7 @@ export default function LogoutButton() {
 
     return (
         <Button variant="destructive" onClick={handleLogout}>
-            Logout
+            {t('logout')}
         </Button>
     );
 }
