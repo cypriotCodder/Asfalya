@@ -7,7 +7,7 @@ import os
 # @brief Secret key for signing JWT tokens.
 # @details Loaded from environment variables.
 #
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 ##
 # @brief Algorithm used for JWT encoding.
