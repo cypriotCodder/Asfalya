@@ -73,7 +73,7 @@ export default function AnalyticsDashboard() {
                             <CardTitle className="text-sm font-medium">{t('analytics_total_revenue')}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">€{financialData.total_revenue.toLocaleString()}</div>
+                            <div className="text-2xl font-bold">£{financialData.total_revenue.toLocaleString()}</div>
                         </CardContent>
                     </Card>
                 </div>
