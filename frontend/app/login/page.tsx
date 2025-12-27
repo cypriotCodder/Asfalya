@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
 import { API_URL } from "@/lib/api";
+import OtpInput from "@/components/OtpInput";
 
 /**
  * @brief Login page component.
@@ -155,15 +156,11 @@ export default function LoginPage() {
                         {activationStep === "verify" && (
                             <form onSubmit={handleVerifyOtp} className="space-y-4">
                                 <p className="text-sm text-center text-zinc-500">{t('code_sent_to')} {email}</p>
-                                <div className="space-y-2">
-                                    <Label htmlFor="otp">{t('enter_code_label')}</Label>
-                                    <Input
-                                        id="otp"
-                                        type="text"
+                                <div className="space-y-4">
+                                    <Label className="block text-center">{t('enter_code_label')}</Label>
+                                    <OtpInput
                                         value={otpCode}
-                                        onChange={(e) => setOtpCode(e.target.value)}
-                                        required
-                                        placeholder="123456"
+                                        onChange={setOtpCode}
                                     />
                                 </div>
                                 {error && <p className="text-red-500 text-sm">{error}</p>}
