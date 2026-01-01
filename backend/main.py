@@ -671,12 +671,14 @@ async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
     user.otp_expiry = datetime.utcnow() + timedelta(minutes=15)
     await db.commit()
     
-    # MOCK EMAIL SENDING
-    print(f"==========================================")
-    print(f" [EMAIL MOCK] To: {email}")
-    print(f" [EMAIL MOCK] Subject: Your Activation Code")
-    print(f" [EMAIL MOCK] Code: {otp}")
-    print(f"==========================================")
+    # Send real email via Resend
+    from email_service import send_activation_email
+    try:
+        await send_activation_email(email, otp)
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        # We don't raise 500 here to prevent revealing if email check passed, 
+        # but the log will show the error.
     
     return {"message": "If this email is registered, a code has been sent."}
 
