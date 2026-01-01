@@ -14,6 +14,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import timedelta, datetime
 from jose import JWTError, jwt
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -284,11 +287,14 @@ async def upload_customers(file: UploadFile = File(...), db: AsyncSession = Depe
             # For now let's just create and catch integrity errors if needed, or better, skip provided duplicates in this simple implementation
             
             otp = generate_otp()
-            # MOCK EMAIL SENDING
-            print(f"==========================================")
-            print(f" [EMAIL MOCK] New Customer: {email_val}")
-            print(f" [EMAIL MOCK] Activation Code: {otp}")
-            print(f"==========================================")
+            # Send real email via Resend
+            from email_service import send_activation_email
+            if email_val:
+                try:
+                    import asyncio
+                    asyncio.create_task(send_activation_email(email_val, otp)) # Background task for bulk
+                except Exception as e:
+                    print(f"Bulk email trigger failed for {email_val}: {e}")
 
             user = User(
                 email=email_val,
@@ -392,11 +398,14 @@ async def create_customer(user_create: UserCreate, db: AsyncSession = Depends(ge
              raise HTTPException(status_code=400, detail="Phone already registered")
 
     otp = generate_otp()
-    # MOCK EMAIL SENDING
-    print(f"==========================================")
-    print(f" [EMAIL MOCK] New Customer: {user_create.email or user_create.phone}")
-    print(f" [EMAIL MOCK] Activation Code: {otp}")
-    print(f"==========================================")
+    # Send real email via Resend
+    from email_service import send_activation_email
+    if user_create.email:
+        try:
+            import asyncio
+            asyncio.create_task(send_activation_email(user_create.email, otp))
+        except Exception as e:
+            print(f"Manual customer email trigger failed for {user_create.email}: {e}")
 
     new_user = User(
         email=user_create.email,
@@ -656,6 +665,8 @@ async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
     """
     # Accepts {"email": "..."}
     email = request.get("email")
+    print(f"DEBUG: OTP Request for email: {email}")
+
     if not email:
         raise HTTPException(status_code=400, detail="Email is required")
         
@@ -663,9 +674,11 @@ async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
     user = result.scalars().first()
     
     if not user:
+        print(f"DEBUG: User not found for email: {email}")
         # Prevent enumeration
         return {"message": "If this email is registered, a code has been sent."}
         
+    print(f"DEBUG: User found! Generating OTP for: {email}")
     otp = generate_otp()
     user.otp_code = get_password_hash(otp) # Store hashed OTP for security
     user.otp_expiry = datetime.utcnow() + timedelta(minutes=15)
@@ -674,11 +687,10 @@ async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
     # Send real email via Resend
     from email_service import send_activation_email
     try:
+        print(f"DEBUG: Attempting to call send_activation_email for: {email}")
         await send_activation_email(email, otp)
     except Exception as e:
-        print(f"Failed to send email: {e}")
-        # We don't raise 500 here to prevent revealing if email check passed, 
-        # but the log will show the error.
+        print(f"CRITICAL ERROR in main.py during send_activation_email: {e}")
     
     return {"message": "If this email is registered, a code has been sent."}
 

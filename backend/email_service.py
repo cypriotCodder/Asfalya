@@ -21,10 +21,11 @@ async def send_activation_email(to_email: str, otp: str):
         print("CRITICAL ERROR: RESEND_API_KEY is not set in environment variables.")
         return None
         
+    print(f"DEBUG: Using RESEND_API_KEY starting with: {api_key[:5]}...")
     resend.api_key = api_key
 
     params = {
-        "from": "Asfalya <onboarding@resend.dev>",
+        "from": "onboarding@resend.dev",
         "to": [to_email],
         "subject": "Asfalya - Your Activation Code",
         "html": f"""
