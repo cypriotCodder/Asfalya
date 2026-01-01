@@ -11,7 +11,7 @@ from database import engine, Base, get_db, AsyncSessionLocal
 from models import Mechanic, User
 from auth_utils import verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES, generate_otp
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
@@ -154,29 +154,23 @@ async def startup():
     @brief Startup event handler.
     @details Initializes the database, runs migrations for missing OTP columns, and seeds the admin user if not present.
     """
-    print("[STARTUP] Attempting to create database tables...")
     try:
         # Create tables
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
             
             # --- MIGRATION: ADD MISSING COLUMNS ---
-            print("[STARTUP] Checking for missing columns...")
             try:
                 await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_code VARCHAR"))
                 await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expiry TIMESTAMP WITH TIME ZONE"))
-                print("[STARTUP] Migration successful: Added otp_code and otp_expiry")
-            except Exception as e:
-                print(f"[STARTUP MIGRATION WARNING] {e}")
+            except:
+                pass 
             # --------------------------------------
 
-        print("[STARTUP] Database tables created successfully!")
-        
         # Seed Admin User
         async with AsyncSessionLocal() as session:
             result = await session.execute(select(User).where(User.email == "admin@asfalya.com"))
             if not result.scalars().first():
-                print("[STARTUP] Seeding admin user...")
                 admin_user = User(
                     email="admin@asfalya.com",
                     hashed_password=get_password_hash("admin123"),
@@ -186,12 +180,9 @@ async def startup():
                 )
                 session.add(admin_user)
                 await session.commit()
-                print("[STARTUP] Admin user created: admin@asfalya.com")
-            else:
-                print("[STARTUP] Admin user already exists.")
-                
     except Exception as e:
-        print(f"[STARTUP ERROR] Failed to start application: {e}")
+        # We only log critical startup failures
+        print(f"FAILED TO START APPLICATION: {e}")
         raise e
 
 @app.get("/")
@@ -294,14 +285,15 @@ async def upload_customers(file: UploadFile = File(...), db: AsyncSession = Depe
                     import asyncio
                     asyncio.create_task(send_activation_email(email_val, otp)) # Background task for bulk
                 except Exception as e:
-                    print(f"Bulk email trigger failed for {email_val}: {e}")
+                    # Log error but don't stop everything
+                    print(f"Failed to trigger onboarding email for {email_val}")
 
             user = User(
                 email=email_val,
                 phone=phone_val,
                 hashed_password=get_password_hash(generate_otp(12)), # Random initial password
                 otp_code=get_password_hash(otp),
-                otp_expiry=datetime.utcnow() + timedelta(days=7), # Give them a week to activate
+                otp_expiry=datetime.now(timezone.utc) + timedelta(days=7), # Give them a week to activate
                 is_active=True, # They are active, just can't login without password
                 is_admin=False
             )
@@ -405,14 +397,15 @@ async def create_customer(user_create: UserCreate, db: AsyncSession = Depends(ge
             import asyncio
             asyncio.create_task(send_activation_email(user_create.email, otp))
         except Exception as e:
-            print(f"Manual customer email trigger failed for {user_create.email}: {e}")
+            # Log error but don't stop everything
+            print(f"Failed to trigger onboarding email for {user_create.email}")
 
     new_user = User(
         email=user_create.email,
         phone=user_create.phone,
         hashed_password=get_password_hash(generate_otp(12)), # Random initial password
         otp_code=get_password_hash(otp),
-        otp_expiry=datetime.utcnow() + timedelta(days=7),
+        otp_expiry=datetime.now(timezone.utc) + timedelta(days=7),
         is_active=True,
         is_admin=False,
         full_name=user_create.full_name,
@@ -665,7 +658,6 @@ async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
     """
     # Accepts {"email": "..."}
     email = request.get("email")
-    print(f"DEBUG: OTP Request for email: {email}")
 
     if not email:
         raise HTTPException(status_code=400, detail="Email is required")
@@ -674,23 +666,21 @@ async def request_otp(request: dict, db: AsyncSession = Depends(get_db)):
     user = result.scalars().first()
     
     if not user:
-        print(f"DEBUG: User not found for email: {email}")
         # Prevent enumeration
         return {"message": "If this email is registered, a code has been sent."}
         
-    print(f"DEBUG: User found! Generating OTP for: {email}")
     otp = generate_otp()
     user.otp_code = get_password_hash(otp) # Store hashed OTP for security
-    user.otp_expiry = datetime.utcnow() + timedelta(minutes=15)
+    user.otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=15)
     await db.commit()
     
     # Send real email via Resend
     from email_service import send_activation_email
     try:
-        print(f"DEBUG: Attempting to call send_activation_email for: {email}")
         await send_activation_email(email, otp)
     except Exception as e:
-        print(f"CRITICAL ERROR in main.py during send_activation_email: {e}")
+        # Silently log for security
+        print(f"Failed to send OTP email: {e}")
     
     return {"message": "If this email is registered, a code has been sent."}
 
@@ -717,7 +707,7 @@ async def verify_otp(request: dict, db: AsyncSession = Depends(get_db)):
     if not user or not user.otp_code or not user.otp_expiry:
          raise HTTPException(status_code=400, detail="Invalid code or email")
          
-    if datetime.utcnow() > user.otp_expiry:
+    if datetime.now(timezone.utc) > user.otp_expiry:
         raise HTTPException(status_code=400, detail="Code expired")
         
     # Verify hashed code

@@ -18,10 +18,8 @@ async def send_activation_email(to_email: str, otp: str):
     """
     api_key = os.getenv("RESEND_API_KEY")
     if not api_key:
-        print("CRITICAL ERROR: RESEND_API_KEY is not set in environment variables.")
         return None
         
-    print(f"DEBUG: Using RESEND_API_KEY starting with: {api_key[:5]}...")
     resend.api_key = api_key
 
     params = {
@@ -44,9 +42,8 @@ async def send_activation_email(to_email: str, otp: str):
 
     try:
         response = resend.Emails.send(params)
-        print(f"Email sent successfully to {to_email}. ID: {response.get('id')}")
         return response
     except Exception as e:
-        print(f"CRITICAL ERROR sending email via Resend: {e}")
-        # We catch and print specifically to help user debug, but still raise for the endpoint
+        # Keep logging errors for production monitoring
+        print(f"Error sending email via Resend: {e}")
         raise e

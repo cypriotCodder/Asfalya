@@ -20,23 +20,10 @@ if "+asyncpg" not in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://")
 
-# extract host for debugging
-try:
-    db_host = DATABASE_URL.split("@")[1].split("/")[0]
-except:
-    db_host = "unknown"
-
-print(f"[DB] Attempting connection to HOST: {db_host}")
-if "localhost" in db_host or "127.0.0.1" in db_host:
-    print("!!! WARNING: DATABASE_URL points to localhost. This will FAIL in Railway unless you are running a local database service in the same container. !!!")
-    print("!!! Please add DATABASE_URL variable in Railway Backend Service -> Variables !!!")
-
-print(f"[DB] Using DATABASE_URL: {DATABASE_URL[:60]}...") 
-
 # Create engine - disable SSL for Railway internal connections
 engine = create_async_engine(
     DATABASE_URL, 
-    echo=True,
+    echo=False, # Set to False to reduce noise in logs
     connect_args={"ssl": False}
 )
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
