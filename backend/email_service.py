@@ -8,8 +8,6 @@ load_dotenv()
 # @brief Configuration for the Resend API.
 # @details The API key must be set in the RESEND_API_KEY environment variable.
 #
-resend.api_key = os.getenv("RESEND_API_KEY")
-
 async def send_activation_email(to_email: str, otp: str):
     """
     @brief Sends an account activation email via Resend.
@@ -18,6 +16,13 @@ async def send_activation_email(to_email: str, otp: str):
     @param otp The 6-digit activation code.
     @return The API response.
     """
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
+        print("CRITICAL ERROR: RESEND_API_KEY is not set in environment variables.")
+        return None
+        
+    resend.api_key = api_key
+
     params = {
         "from": "Asfalya <onboarding@resend.dev>",
         "to": [to_email],
@@ -37,11 +42,10 @@ async def send_activation_email(to_email: str, otp: str):
     }
 
     try:
-        # Note: resend-python currently doesn't have native async support in the SDK itself,
-        # but we use 'async def' to keep the FastAPI architecture clean and allow for future 
-        # non-blocking wrappers if needed.
         response = resend.Emails.send(params)
+        print(f"Email sent successfully to {to_email}. ID: {response.get('id')}")
         return response
     except Exception as e:
-        print(f"Error sending email via Resend: {e}")
+        print(f"CRITICAL ERROR sending email via Resend: {e}")
+        # We catch and print specifically to help user debug, but still raise for the endpoint
         raise e
