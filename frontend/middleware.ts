@@ -18,9 +18,9 @@ export function middleware(request: NextRequest) {
         }
     }
 
-    // Redirect to admin if logged in and trying to access login
+    // Redirect to home if logged in and trying to access login
     if (request.nextUrl.pathname.startsWith('/login') && token) {
-        return NextResponse.redirect(new URL('/admin', request.url))
+        return NextResponse.redirect(new URL('/', request.url))
     }
 
     return NextResponse.next()

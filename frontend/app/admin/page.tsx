@@ -26,14 +26,49 @@ import { useLanguage } from "@/context/LanguageContext";
 import { API_URL } from "@/lib/api";
 
 
+import { useRouter } from "next/navigation";
+import { User } from "@/types/user";
+
 export default function AdminPage() {
     const { t } = useLanguage();
+    const router = useRouter();
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
     const [notifOpen, setNotifOpen] = useState(false);
     const [notifLoading, setNotifLoading] = useState(false);
     const [notifData, setNotifData] = useState({
         message: "",
         target_audience: "all"
     });
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const token = localStorage.getItem("token");
+            try {
+                const res = await fetch(`${API_URL}/api/users/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!data.is_admin) {
+                        router.push("/customer");
+                    } else {
+                        setUser(data);
+                    }
+                } else {
+                    router.push("/login");
+                }
+            } catch (err) {
+                router.push("/login");
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkAuth();
+    }, [router]);
+
+    if (loading) return null;
+
 
     const handleSendNotification = async () => {
         setNotifLoading(true);
