@@ -97,7 +97,6 @@ With the backend running, interactive API docs are available at:
 
 ## Screenshots
 
-> _Add a few screenshots so visitors can see the platform without running it. Suggested shots: the admin analytics dashboard, the Excel import flow, and the nearby-mechanics map. Place image files in `docs/screenshots/` and reference them here, e.g._
 >
 > ```markdown
 > ![Admin dashboard](docs/screenshots/dashboard.png)
