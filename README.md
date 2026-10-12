@@ -1,113 +1,109 @@
-# Asfalya - Insurance Notification & Insights Platform
+# Asfalya — Insurance Notification & Insights Platform
 
-Asfalya is a modern insurance management platform designed to streamline customer communications, manage policy renewals, and provide actionable business insights for insurance agencies.
+Asfalya is an insurance management platform for agencies: it streamlines customer communication, tracks policy renewals, and surfaces business insights from the agency's own data. It pairs an asynchronous FastAPI backend with a Next.js frontend.
 
-## 🚀 Implementation Overview
-
-The project is built with a decoupled architecture, using **FastAPI** for a high-performance asynchronous backend and **Next.js** for a premium, responsive frontend experience.
-
-### 🏗️ Technology Stack
-
-#### Backend
-- **FastAPI**: Asynchronous Python web framework for the API layer.
-- **SQLAlchemy (Async)**: For database ORM with asynchronous PostgreSQL support via `asyncpg`.
-- **PostgreSQL**: Robust relational database for persistent storage.
-- **JWT & Passlib**: Secure authentication using JSON Web Tokens and bcrypt password hashing.
-- **Pandas & Openpyxl**: Powerful Excel processing for bulk data imports.
-- **Doxygen-style Documentation**: Comprehensive docstrings for all modules and endpoints.
-
-#### Frontend
-- **Next.js 15 (App Router)**: Modern React framework for routing and server-side rendering.
-- **Tailwind CSS**: Utility-first CSS for a sleek, responsive UI.
-- **shadcn/ui**: High-quality, accessible UI components.
-- **Recharts**: Dynamic visualization for analytics and trends.
-- **Leaflet**: Interactive mapping for location-based services (Nearby Mechanics).
-- **TypeScript**: Ensuring type safety across the frontend codebase.
+<p align="center"><em>⬇️ Add screenshots here — see <a href="#screenshots">Screenshots</a>.</em></p>
 
 ---
 
-## 💎 Key Features & Implementation Details
+## Overview
 
-### 1. Admin-Led User Activation Flow
-Instead of traditional self-signup, Asfalya implements a secure admin-led activation process:
-- **Creation**: Admin creates a customer or imports via Excel. A temporary random password and a 6-digit OTP are generated.
-- **Security**: The OTP is hashed before storage in the database with a 15-minute expiry.
-- **Activation**: The user performs a "First Time Login" by entering their email, verifying the OTP, and then setting their permanent password. This ensures only authorized customers can access the portal.
+The platform is built as two decoupled services: a high-performance async **FastAPI** API and a responsive **Next.js** frontend. Admins onboard customers (individually or in bulk from Excel), customers activate their own accounts through a secure one-time-code flow, and the admin dashboard turns policy and payment data into revenue and growth insights.
 
-### 2. Advanced Analytics & Insights
-The Admin Dashboard provides real-time financial and behavioral data:
-- **Revenue Trends**: Visualization of monthly turnover and growth.
-- **Policy Distribution**: Automated categorization of policies (Full, Third-Party, etc.) using `Recharts`.
-- **Customer Growth**: Cumulative metrics tracking platform adoption.
+## Tech stack
 
-### 3. Smart Excel Integration
-A robust bulk import system allows admins to bootstrap thousands of records in seconds:
-- Handles both **Customers** and **Mechanics**.
-- Automated validation and data cleaning (e.g., cleaning phone numbers, handling missing values).
-- Heuristic-based coordinate fixing for location data.
+**Backend**
+- **FastAPI** — asynchronous Python API layer
+- **SQLAlchemy (async)** with **asyncpg** over **PostgreSQL**
+- **Celery + Redis** — background jobs (email delivery, bulk imports)
+- **python-jose + Passlib/bcrypt** — JWT auth and password hashing
+- **Pandas + openpyxl** — Excel ingestion and data cleaning
+- **Resend** — transactional email
 
-### 4. Multi-Language Support (TR/EN)
-A global `LanguageProvider` using React Context allows for seamless, real-time switching between Turkish and English across the entire application. All UI strings, error messages, and alerts are centralized in `translations.ts`.
+**Frontend**
+- **Next.js (App Router)** + **TypeScript**
+- **Tailwind CSS** with **shadcn/ui** (Radix primitives)
+- **Recharts** — analytics visualisations
+- **Leaflet / react-leaflet** — interactive "nearby mechanics" map
 
-### 5. Nearby Mechanics Map
-Integrated with **Leaflet**, the platform provides customers with an interactive map to find nearby service providers. It includes custom markers, popup details, and direct WhatsApp links for quick interaction.
+## Key features
 
-### 6. Session Management & Security
-- **Global `SessionManager`**: Monitors token validity and provides a 30-minute auto-refresh heartbeat.
-- **Secure Cookies**: Middleware-based auth using cookies and local storage tokens for cross-platform compatibility.
+### Admin-led account activation
+Rather than open self-signup, Asfalya uses a secure admin-led flow. An admin creates a customer (or imports in bulk); the system generates a temporary password and a 6-digit OTP, hashed before storage with a 15-minute expiry. The customer completes a first-time login — verify email, enter the OTP, set a permanent password — so only authorised customers reach the portal.
 
----
+### Analytics & insights
+The admin dashboard presents real-time financial and behavioural data: monthly revenue trends and growth, automated policy distribution (full, third-party, etc.), and cumulative customer-growth metrics, all visualised with Recharts.
 
-## 🛠️ Getting Started
+### Bulk Excel import
+A bulk-import system bootstraps thousands of records at once, handling both customers and mechanics with automated validation and cleaning (normalising phone numbers, handling missing values, and heuristic coordinate fixing for location data).
+
+### Bilingual UI (TR/EN)
+A global language provider built on React Context switches the entire interface between Turkish and English at runtime. UI strings, error messages, and alerts are centralised in a single translations module.
+
+### Nearby mechanics map
+An interactive Leaflet map helps customers find nearby service providers, with custom markers, popups, and direct WhatsApp links.
+
+### Session management & security
+A global session manager tracks token validity with a 30-minute refresh heartbeat. Authentication uses middleware-backed cookies alongside local-storage tokens for cross-platform compatibility.
+
+## Getting started
 
 ### Prerequisites
-- **Docker Desktop** (Required for PostgreSQL and Redis)
-- **Node.js 18+**
-- **Python 3.10+**
+- Docker Desktop (for PostgreSQL and Redis)
+- Node.js 18+
+- Python 3.10+
 
-### 1. Clone & Setup
+### 1. Clone
 ```bash
-git clone <repository-url>
+git clone https://github.com/cypriotCodder/Asfalya.git
 cd Asfalya
 ```
 
-### 2. Environment Configuration
-Create a `.env` file in the `backend` directory:
+### 2. Configure the backend environment
+Create a `.env` file in `backend/`:
 ```env
 DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/asfalya
 SECRET_KEY=your_super_secret_key_here
 ```
 
-### 3. Run with Docker Compose
-The easiest way to start the infrastructure:
+### 3. Start infrastructure
 ```bash
 docker-compose up -d
 ```
 
-### 4. Start Development Servers
+### 4. Run the services
 
-**Backend:**
+**Backend**
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # Or venv\Scripts\activate on Windows
+source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-**Frontend:**
+**Frontend**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
----
+## API documentation
 
-## 📖 API Documentation
-Once the backend is running, you can access the interactive API documentation at:
-- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+With the backend running, interactive API docs are available at:
+- Swagger UI — http://localhost:8000/docs
+- ReDoc — http://localhost:8000/redoc
 
-## 📄 License
-© 2025 Asfalya. All rights reserved.
+## Screenshots
+
+> _Add a few screenshots so visitors can see the platform without running it. Suggested shots: the admin analytics dashboard, the Excel import flow, and the nearby-mechanics map. Place image files in `docs/screenshots/` and reference them here, e.g._
+>
+> ```markdown
+> ![Admin dashboard](docs/screenshots/dashboard.png)
+> ![Nearby mechanics map](docs/screenshots/map.png)
+> ```
+
+## License
+
+Copyright © 2025 Nedim Hüray. All rights reserved.
